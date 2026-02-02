@@ -1,0 +1,380 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useParams, useNavigate } from 'react-router-dom';
+import QRCode from 'qrcode.react';
+
+const AssetDetail = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [asset, setAsset] = useState(null);
+  const [locations, setLocations] = useState([]);
+  const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [editMode, setEditMode] = useState(false);
+  const [formData, setFormData] = useState({});
+  const [newNote, setNewNote] = useState('');
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+  useEffect(() => {
+    fetchAssetDetail();
+    fetchAssignmentHistory();
+    fetchLocations();
+  }, [id]);
+
+  const fetchAssetDetail = async () => {
+    try {
+      const response = await axios.get(`/api/assets/${id}`);
+      setAsset(response.data);
+      setFormData(response.data);
+    } catch (err) {
+      console.error('Failed to fetch asset:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchLocations = async () => {
+    try {
+      const response = await axios.get('/api/locations');
+      setLocations(response.data);
+    } catch (err) {
+      console.error('Failed to fetch locations:', err);
+    }
+  };
+
+  const fetchAssignmentHistory = async () => {
+    try {
+      const response = await axios.get(`/api/assignments/asset/${id}/history`);
+      setHistory(response.data);
+    } catch (err) {
+      console.error('Failed to fetch assignment history:', err);
+    }
+  };
+
+  const formatCurrency = (value, currency) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency || 'USD',
+    }).format(value || 0);
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.put(`/api/assets/${id}`, formData);
+      setAsset(response.data);
+      setEditMode(false);
+    } catch (err) {
+      console.error('Failed to update asset:', err);
+    }
+  };
+
+  const handleAddNote = async () => {
+    if (!newNote.trim()) return;
+    try {
+      const response = await axios.post(`/api/assets/${id}/notes`, { content: newNote });
+      setAsset(response.data);
+      setNewNote('');
+    } catch (err) {
+      console.error('Failed to add note:', err);
+    }
+  };
+
+  if (loading) {
+    return <div className="p-6 text-center">Loading asset details...</div>;
+  }
+
+  if (!asset) {
+    return <div className="p-6 text-center text-red-600">Asset not found</div>;
+  }
+
+  const DetailItem = ({ label, value, color }) => (
+    <div className="space-y-1">
+      <p className="text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider font-bold">{label}</p>
+      <p className={`text-base font-semibold ${color || 'text-slate-900 dark:text-white'}`}>{value || '-'}</p>
+    </div>
+  );
+
+  return (
+    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+      <div className="flex justify-between items-center">
+        <button
+          onClick={() => navigate('/assets')}
+          className="text-blue-600 dark:text-blue-400 hover:opacity-80 flex items-center gap-2 group font-medium"
+        >
+          <span className="group-hover:-translate-x-1 transition-transform">←</span> Back to Assets
+        </button>
+        {['admin', 'manager'].includes(user?.role) && (
+          <button
+            onClick={() => setEditMode(!editMode)}
+            className={`px-6 py-2 rounded-xl font-bold transition-all shadow-sm ${editMode ? 'bg-slate-200 text-slate-800' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+          >
+            {editMode ? 'Cancel Editing' : 'Edit Asset'}
+          </button>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Main Info Column */}
+        <div className="lg:col-span-2 space-y-8">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 p-8">
+            <div className="flex justify-between items-start mb-8">
+              <div>
+                <h1 className="text-3xl font-black text-slate-900 dark:text-white leading-tight">{asset.name}</h1>
+                <p className="text-slate-500 font-medium">{asset.serialNumber}</p>
+              </div>
+              <span className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest ${asset.status === 'available' ? 'bg-emerald-100 text-emerald-800' :
+                  asset.status === 'assigned' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'
+                }`}>
+                {asset.status}
+              </span>
+            </div>
+
+            {editMode ? (
+              <form onSubmit={handleUpdate} className="space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* General Info */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800 pb-2">General</h3>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Asset Tag</label>
+                      <input type="text" value={formData.assetTag} onChange={(e) => setFormData({ ...formData, assetTag: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Name</label>
+                      <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Priority</label>
+                      <input type="text" value={formData.priority} onChange={(e) => setFormData({ ...formData, priority: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Company/Client</label>
+                      <input type="text" value={formData.companyClient} onChange={(e) => setFormData({ ...formData, companyClient: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                  </div>
+
+                  {/* Specs */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800 pb-2">Specifications</h3>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Processor</label>
+                      <input type="text" value={formData.processor} onChange={(e) => setFormData({ ...formData, processor: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">RAM</label>
+                      <input type="text" value={formData.ram} onChange={(e) => setFormData({ ...formData, ram: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Storage</label>
+                      <input type="text" value={formData.storage} onChange={(e) => setFormData({ ...formData, storage: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Adapter S/N</label>
+                      <input type="text" value={formData.adapterSerialNumber} onChange={(e) => setFormData({ ...formData, adapterSerialNumber: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                  </div>
+
+                  {/* User Details */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800 pb-2">User Details</h3>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Emp ID</label>
+                      <input type="text" value={formData.employeeId} onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Mobile</label>
+                      <input type="text" value={formData.mobileNumber} onChange={(e) => setFormData({ ...formData, mobileNumber: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Client Mail</label>
+                      <input type="text" value={formData.clientMailId} onChange={(e) => setFormData({ ...formData, clientMailId: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                  </div>
+
+                  {/* Purchase & Identity */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800 pb-2">Purchase & Tracking</h3>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Invoice No</label>
+                      <input type="text" value={formData.invoiceNo} onChange={(e) => setFormData({ ...formData, invoiceNo: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Supplier</label>
+                      <input type="text" value={formData.supplierName} onChange={(e) => setFormData({ ...formData, supplierName: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Purchase Price</label>
+                      <input type="number" value={formData.purchasePrice} onChange={(e) => setFormData({ ...formData, purchasePrice: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 pt-6 border-t border-slate-100 dark:border-slate-800">
+                  <button type="submit" className="flex-1 py-4 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 dark:shadow-none">Save All Changes</button>
+                  <button type="button" onClick={() => setEditMode(false)} className="px-8 py-4 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-2xl font-black uppercase tracking-widest hover:bg-slate-200 transition-all">Cancel</button>
+                </div>
+              </form>
+            ) : (
+              <div className="space-y-12">
+                {/* Visual Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-10">
+                  <DetailItem label="Asset Tag" value={asset.assetTag} />
+                  <DetailItem label="Type" value={asset.type} />
+                  <DetailItem label="Priority" value={asset.priority} color="text-blue-600 dark:text-blue-400" />
+                  <DetailItem label="Location" value={asset.location?.name} />
+
+                  <DetailItem label="Emp ID" value={asset.employeeId} />
+                  <DetailItem label="Company" value={asset.companyClient} />
+                  <DetailItem label="Assigned To" value={asset.assignedTo ? `${asset.assignedTo.firstName} ${asset.assignedTo.lastName}` : 'Unassigned'} color={asset.assignedTo ? 'text-emerald-600' : 'text-slate-400'} />
+                  <DetailItem label="Mobile" value={asset.mobileNumber} />
+
+                  <DetailItem label="Processor" value={asset.processor} />
+                  <DetailItem label="RAM" value={asset.ram} />
+                  <DetailItem label="Storage" value={asset.storage} />
+                  <DetailItem label="Adapter S/N" value={asset.adapterSerialNumber} />
+
+                  <DetailItem label="Invoice No" value={asset.invoiceNo || asset.invoiceNumber} />
+                  <DetailItem label="Supplier" value={asset.supplierName || asset.vendor} />
+                  <DetailItem label="Value" value={formatCurrency(asset.currentValue || asset.purchasePrice, asset.location?.currency)} color="text-blue-600 dark:text-blue-400 font-black" />
+                  <DetailItem label="Purchase Date" value={asset.purchaseDate ? new Date(asset.purchaseDate).toLocaleDateString() : '-'} />
+                </div>
+
+                {/* Additional Details Section */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 pt-10 border-t border-slate-100 dark:border-slate-800">
+                  <div className="space-y-4">
+                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Extended Specs</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <DetailItem label="Express Service" value={asset.expressServiceCode} />
+                      <DetailItem label="Assigned Date" value={asset.laptopAssignedDate ? new Date(asset.laptopAssignedDate).toLocaleDateString() : '-'} />
+                      <DetailItem label="License" value={asset.license} />
+                      <DetailItem label="Old Loaner" value={asset.oldLoaner} />
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Contact & Forms</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <DetailItem label="Int. Mail" value={asset.internalMailId} />
+                      <DetailItem label="Ext. Mail" value={asset.clientMailId} />
+                      <DetailItem label="Ack. Form" value={asset.acknowledgementForm} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Custom Fields Section */}
+                {asset.customFields?.length > 0 && (
+                  <div className="pt-10 border-t border-slate-100 dark:border-slate-800">
+                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Custom Metadata</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                      {asset.customFields.map((cf, idx) => (
+                        <DetailItem key={idx} label={cf.fieldName} value={cf.fieldValue} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Activity & Notes */}
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 p-8">
+            <h2 className="text-xl font-black text-slate-900 dark:text-white mb-8">Maintenance Feed</h2>
+            <div className="space-y-8">
+              <div className="flex gap-4">
+                <input
+                  type="text"
+                  value={newNote}
+                  onChange={(e) => setNewNote(e.target.value)}
+                  placeholder="Record an update or maintenance action..."
+                  className="flex-1 px-6 py-4 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl dark:text-white outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"
+                />
+                <button
+                  onClick={handleAddNote}
+                  className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 dark:shadow-none"
+                >
+                  Post
+                </button>
+              </div>
+              <div className="space-y-6">
+                {asset.notes?.length > 0 ? asset.notes.slice().reverse().map((note, idx) => (
+                  <div key={idx} className="relative pl-8 before:content-[''] before:absolute before:left-0 before:top-2 before:bottom-0 before:w-0.5 before:bg-slate-100 dark:before:bg-slate-800">
+                    <div className="absolute left-[-4px] top-1.5 w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-sm font-black text-slate-900 dark:text-white">{note.author?.username || 'System'}</span>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">{new Date(note.createdAt).toLocaleString()}</span>
+                    </div>
+                    <p className="text-slate-600 dark:text-slate-400 font-medium leading-relaxed">{note.content}</p>
+                  </div>
+                )) : (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <svg className="w-6 h-6 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      </svg>
+                    </div>
+                    <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">No entries in feed</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Sidebar Column */}
+        <div className="space-y-8">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 p-8 flex flex-col items-center">
+            <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-8">Asset Identifier</h3>
+            <div className="p-6 bg-white rounded-3xl shadow-xl shadow-slate-200 dark:shadow-none mb-8 ring-1 ring-slate-100">
+              <QRCode value={asset.assetTag} size={180} />
+            </div>
+            <button
+              onClick={() => {
+                const link = document.createElement('a');
+                const canvas = document.querySelector('canvas');
+                link.href = canvas.toDataURL('image/png');
+                link.download = `${asset.assetTag}-qr.png`;
+                link.click();
+              }}
+              className="w-full py-4 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white rounded-2xl font-black uppercase tracking-widest hover:bg-slate-100 transition-all text-xs"
+            >
+              Download Asset Image
+            </button>
+          </div>
+
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 p-8">
+            <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-8">Ownership Trail</h3>
+            <div className="space-y-6">
+              {history.length === 0 ? (
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest text-center py-8">Initial Acquisition</p>
+              ) : (
+                history.map((assignment, idx) => (
+                  <div key={idx} className="flex gap-4 group">
+                    <div className="flex flex-col items-center">
+                      <div className={`w-3 h-3 rounded-full border-2 border-white ${assignment.status === 'active' ? 'bg-emerald-500 scale-125' : 'bg-slate-300'}`}></div>
+                      <div className="w-0.5 flex-1 bg-slate-100 dark:bg-slate-800 my-1"></div>
+                    </div>
+                    <div className="flex-1 pb-6">
+                      <p className="text-sm font-black text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors">
+                        {assignment.employee?.firstName} {assignment.employee?.lastName}
+                      </p>
+                      <div className="flex justify-between items-center mt-1">
+                        <span className={`text-[10px] font-black uppercase tracking-tighter ${assignment.status === 'active' ? 'text-emerald-500' : 'text-slate-400'}`}>
+                          {assignment.status === 'active' ? 'Current Owner' : 'Past Owner'}
+                        </span>
+                        <span className="text-[10px] font-bold text-slate-300 font-mono">
+                          {new Date(assignment.assignedDate).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AssetDetail;
