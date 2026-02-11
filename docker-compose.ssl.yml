@@ -14,7 +14,7 @@ services:
       - mongodb_data_ssl:/data/db
       - mongodb_config_ssl:/data/configdb
     healthcheck:
-      test: mongosh --username $MONGO_INITDB_ROOT_USERNAME --password $MONGO_INITDB_ROOT_PASSWORD --authenticationDatabase admin --eval "db.adminCommand('ping')" --quiet
+      test: mongosh --username $$MONGO_INITDB_ROOT_USERNAME --password $$MONGO_INITDB_ROOT_PASSWORD --authenticationDatabase admin --eval "db.adminCommand('ping')" --quiet
       interval: 10s
       timeout: 5s
       retries: 5
