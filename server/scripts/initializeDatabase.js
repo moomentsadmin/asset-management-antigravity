@@ -296,9 +296,14 @@ async function initializeDatabase() {
 }
 
 // Run initialization
-initializeDatabase().catch(error => {
-  console.error('Fatal error:', error);
-  process.exit(1);
-});
+import { fileURLToPath } from 'url';
+
+// Only run if executed directly
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  initializeDatabase().catch(error => {
+    console.error('Fatal error:', error);
+    process.exit(1);
+  });
+}
 
 export default initializeDatabase;

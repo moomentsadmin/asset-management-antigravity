@@ -43,10 +43,18 @@ const Dashboard = ({ settings }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    let mounted = true;
+    fetchDashboardData(mounted);
+    return () => { mounted = false; };
+  }, []); // Keep empty array to run once on mount. App.jsx renders this only after loading=false.
 
-  const fetchDashboardData = async () => {
+  useEffect(() => {
+    if (settings?.companyName) {
+      document.title = `${settings.companyName} - Dashboard`;
+    }
+  }, [settings]);
+
+  const fetchDashboardData = async (mounted) => {
     try {
       const [statsRes, depRes, assignRes, healthRes] = await Promise.all([
         axios.get('/api/dashboard/stats'),
@@ -62,7 +70,7 @@ const Dashboard = ({ settings }) => {
     } catch (err) {
       console.error('Failed to fetch dashboard data:', err);
     } finally {
-      setLoading(false);
+      if (mounted) setLoading(false);
     }
   };
 
@@ -70,6 +78,18 @@ const Dashboard = ({ settings }) => {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  /* Fallback if data fetch failed or returned nothing */
+  if (!stats) {
+    return (
+      <div className="p-8 text-center text-slate-500">
+        <p>No dashboard data available. The system might be initializing.</p>
+        <button onClick={() => window.location.reload()} className="mt-4 text-blue-600 hover:underline">
+          Refresh Page
+        </button>
       </div>
     );
   }
@@ -215,8 +235,8 @@ const Dashboard = ({ settings }) => {
                   </td>
                   <td className="py-3 px-6">
                     <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${assignment.status === 'active'
-                        ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400'
-                        : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-400'
+                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400'
+                      : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-400'
                       }`}>
                       {assignment.status.toUpperCase()}
                     </span>

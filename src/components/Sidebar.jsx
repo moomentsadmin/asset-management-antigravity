@@ -57,7 +57,7 @@ const Icons = {
   )
 };
 
-const Sidebar = ({ user, onLogout, darkMode }) => {
+const Sidebar = ({ user, onLogout, darkMode, settings }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const location = useLocation();
 
@@ -70,10 +70,12 @@ const Sidebar = ({ user, onLogout, darkMode }) => {
     { id: 'users', label: 'Users', icon: Icons.Users, href: '/users', roles: ['admin'] },
     { id: 'audit', label: 'Audit Trail', icon: Icons.Audit, href: '/audit', roles: ['admin', 'manager'] },
     { id: 'settings', label: 'Settings', icon: Icons.Settings, href: '/settings', roles: ['admin'] },
+    { id: 'asset-types', label: 'Asset Types', icon: Icons.Assets, href: '/asset-types', roles: ['admin', 'manager'] },
   ];
 
   const visibleItems = menuItems.filter(item => item.roles.includes(user?.role));
   const isActive = (href) => location.pathname === href;
+  const primaryColor = settings?.primaryColor || '#2563eb';
 
   return (
     <aside className={`${isCollapsed ? 'w-20' : 'w-64'} transition-all duration-300 flex flex-col h-screen border-r ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'
@@ -83,11 +85,15 @@ const Sidebar = ({ user, onLogout, darkMode }) => {
         }`}>
         {!isCollapsed && (
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
-              <Icons.Logo />
-            </div>
+            {settings?.companyLogo ? (
+              <img src={settings.companyLogo} alt="Logo" className="w-8 h-8 rounded-lg object-contain" />
+            ) : (
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center shadow-sm" style={{ backgroundColor: primaryColor }}>
+                <Icons.Logo />
+              </div>
+            )}
             <span className={`font-bold text-sm tracking-tight ${darkMode ? 'text-white' : 'text-slate-900'}`}>
-              Nexus Asset
+              {settings?.companyName || 'Nexus Asset'}
             </span>
           </div>
         )}

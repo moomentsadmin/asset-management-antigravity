@@ -7,6 +7,7 @@ import ImportModal from '../components/ImportModal';
 const Assets = () => {
   const [assets, setAssets] = useState([]);
   const [locations, setLocations] = useState([]);
+  const [assetTypes, setAssetTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ status: '', type: '', search: '' });
   const [showForm, setShowForm] = useState(false);
@@ -48,6 +49,7 @@ const Assets = () => {
   useEffect(() => {
     fetchAssets();
     fetchLocations();
+    fetchAssetTypes();
   }, [filters]);
 
   const fetchAssets = async () => {
@@ -72,6 +74,18 @@ const Assets = () => {
       setLocations(response.data);
     } catch (err) {
       console.error('Failed to fetch locations:', err);
+    }
+  };
+
+  const fetchAssetTypes = async () => {
+    try {
+      const response = await axios.get('/api/asset-types');
+      setAssetTypes(response.data);
+      if (response.data.length > 0 && !formData.type) {
+        setFormData(prev => ({ ...prev, type: response.data[0].name }));
+      }
+    } catch (err) {
+      console.error('Failed to fetch asset types:', err);
     }
   };
 
@@ -218,11 +232,9 @@ const Assets = () => {
           className="px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg dark:bg-slate-800 dark:text-white outline-none"
         >
           <option value="">All Types</option>
-          <option value="hardware">Hardware</option>
-          <option value="software">Software</option>
-          <option value="accessory">Accessory</option>
-          <option value="office_equipment">Office Equipment</option>
-          <option value="vehicle">Vehicle</option>
+          {assetTypes.map(type => (
+            <option key={type._id} value={type.name}>{type.name}</option>
+          ))}
         </select>
       </div>
 
@@ -252,11 +264,9 @@ const Assets = () => {
               onChange={(e) => setFormData({ ...formData, type: e.target.value })}
               className="px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg dark:bg-slate-800 dark:text-white"
             >
-              <option value="hardware">Hardware</option>
-              <option value="software">Software</option>
-              <option value="accessory">Accessory</option>
-              <option value="office_equipment">Office Equipment</option>
-              <option value="vehicle">Vehicle</option>
+              {assetTypes.map(type => (
+                <option key={type._id} value={type.name}>{type.name}</option>
+              ))}
             </select>
             <input
               type="text"

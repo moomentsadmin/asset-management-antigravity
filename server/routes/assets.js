@@ -320,7 +320,28 @@ router.post('/import/csv', authenticateToken, authorizeRole('admin', 'manager'),
       assetData.serialNumber = getValue(['Serial Number', 'serialNumber', 'sn', 'S/N']);
       assetData.status = (getValue(['Status', 'status']) || 'available').toLowerCase();
       assetData.purchasePrice = parseFloat(getValue(['Purchase Price', 'purchasePrice', 'Price']) || 0);
-      assetData.purchaseDate = getValue(['Purchase Date', 'purchaseDate']);
+      // Helper to parse date strings (e.g. 13-07-2021 to Date object)
+      const parseDate = (dateStr) => {
+        if (!dateStr) return undefined;
+        if (typeof dateStr === 'string') {
+          const cleanStr = dateStr.trim().toUpperCase();
+          if (cleanStr === 'NA' || cleanStr === 'N/A' || cleanStr === '') return undefined;
+
+          // Check for DD-MM-YYYY format
+          if (/^\d{2}-\d{2}-\d{4}$/.test(cleanStr)) {
+            const [day, month, year] = cleanStr.split('-');
+            return new Date(`${year}-${month}-${day}`);
+          }
+          // Check for DD/MM/YYYY format
+          if (/^\d{2}\/\d{2}\/\d{4}$/.test(cleanStr)) {
+            const [day, month, year] = cleanStr.split('/');
+            return new Date(`${year}-${month}-${day}`);
+          }
+        }
+        return dateStr;
+      };
+
+      assetData.purchaseDate = parseDate(getValue(['Purchase Date', 'purchaseDate']));
       assetData.vendor = getValue(['Vendor', 'vendor', 'Supplier']);
       assetData.invoiceNumber = getValue(['Invoice Number', 'invoiceNumber', 'Invoice No']);
 
@@ -336,12 +357,12 @@ router.post('/import/csv', authenticateToken, authorizeRole('admin', 'manager'),
       assetData.processor = getValue(['Processor', 'processor']);
       assetData.ram = getValue(['RAM', 'ram']);
       assetData.storage = getValue(['Storage', 'storage']);
-      assetData.laptopAssignedDate = getValue(['Laptop Assigned Date', 'laptopAssignedDate']);
+      assetData.laptopAssignedDate = parseDate(getValue(['Laptop Assigned Date', 'laptopAssignedDate']));
       assetData.license = getValue(['License', 'license']);
       assetData.acknowledgementForm = getValue(['Acknowledgement Form', 'acknowledgementForm']);
       assetData.oldLoaner = getValue(['Old Loaner', 'oldLoaner']);
       assetData.supplierName = getValue(['Supplier Name', 'supplierName']);
-      assetData.invoiceDate = getValue(['Invoice Date', 'invoiceDate']);
+      assetData.invoiceDate = parseDate(getValue(['Invoice Date', 'invoiceDate']));
       assetData.invoiceNo = getValue(['Invoice No', 'invoiceNo']);
 
       // 3. Handle Custom Fields (everything else)

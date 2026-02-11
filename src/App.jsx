@@ -14,6 +14,7 @@ import Settings from './pages/Settings';
 import AuditTrail from './pages/AuditTrail';
 import Users from './pages/Users';
 import Locations from './pages/Locations';
+import AssetTypes from './pages/AssetTypes';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -22,12 +23,17 @@ function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
-  const [settings, setSettings] = useState(null);
+  /* Initialize settings from local storage if available to prevent title flickering */
+  const [settings, setSettings] = useState(() => {
+    const saved = localStorage.getItem('appSettings');
+    return saved ? JSON.parse(saved) : null;
+  });
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     const savedDarkMode = localStorage.getItem('darkMode') === 'true';
 
+    // Default to light mode for better visibility as requested
     setDarkMode(savedDarkMode);
 
     if (token) {
@@ -49,12 +55,21 @@ function App() {
     }
   }, []);
 
+  /* Update title whenever settings change */
+  useEffect(() => {
+    if (settings?.companyName) {
+      document.title = settings.companyName;
+    }
+  }, [settings]);
+
   const fetchSettings = async () => {
     try {
       const res = await axios.get('/api/settings');
       setSettings(res.data);
-      if (res.data.enableDarkMode) {
-        setDarkMode(true);
+      localStorage.setItem('appSettings', JSON.stringify(res.data)); // Persist settings
+      // Only apply server setting if no local preference
+      if (localStorage.getItem('darkMode') === null) {
+        setDarkMode(false);
       }
     } catch (err) {
       console.error('Failed to fetch settings:', err);
@@ -100,13 +115,15 @@ function App() {
       <BrowserRouter>
         {!user ? (
           <Routes>
-            <Route path="/login" element={<Login onLogin={handleLogin} />} />
+            <Route path="/login" element={
+              !user ? <Login onLogin={handleLogin} settings={settings} /> : <Navigate to="/dashboard" />
+            } />
             <Route path="/setup" element={<Setup onLogin={handleLogin} />} />
             <Route path="*" element={<Navigate to="/login" />} />
           </Routes>
         ) : (
           <div className="flex h-screen bg-slate-50 dark:bg-slate-950">
-            <Sidebar user={user} onLogout={handleLogout} darkMode={darkMode} />
+            <Sidebar user={user} onLogout={handleLogout} darkMode={darkMode} settings={settings} />
             <div className="flex-1 flex flex-col">
               <Header
                 user={user}
@@ -121,12 +138,14 @@ function App() {
                   <Route path="/assets" element={<ProtectedRoute><Assets /></ProtectedRoute>} />
                   <Route path="/assets/:id" element={<ProtectedRoute><AssetDetail /></ProtectedRoute>} />
                   <Route path="/employees" element={<ProtectedRoute><Employees /></ProtectedRoute>} />
+                  <Route path="/asset-types" element={<ProtectedRoute roles={['admin', 'manager']}><AssetTypes /></ProtectedRoute>} />
                   <Route path="/locations" element={<ProtectedRoute roles={['admin', 'manager']}><Locations /></ProtectedRoute>} />
                   <Route path="/assignments" element={<ProtectedRoute><Assignments /></ProtectedRoute>} />
                   <Route path="/users" element={<ProtectedRoute roles={['admin']}><Users /></ProtectedRoute>} />
                   <Route path="/settings" element={<ProtectedRoute roles={['admin']}><Settings settings={settings} onSettingsUpdate={setSettings} /></ProtectedRoute>} />
                   <Route path="/audit" element={<ProtectedRoute roles={['admin', 'manager']}><AuditTrail /></ProtectedRoute>} />
                   <Route path="/" element={<Navigate to="/dashboard" />} />
+                  <Route path="*" element={<Navigate to="/dashboard" />} />
                 </Routes>
               </main>
             </div>

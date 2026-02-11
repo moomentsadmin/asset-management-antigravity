@@ -13,7 +13,6 @@ const assetSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['hardware', 'software', 'accessory', 'office_equipment', 'vehicle'],
     required: true
   },
   serialNumber: String,

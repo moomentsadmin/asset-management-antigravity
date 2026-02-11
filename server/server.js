@@ -86,6 +86,8 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/audit', auditRoutes);
 app.use('/api/locations', locationRoutes);
+import assetTypeRoutes from './routes/assetTypes.js';
+app.use('/api/asset-types', assetTypeRoutes);
 
 // Health Check
 app.get('/api/health', (req, res) => {

@@ -6,6 +6,10 @@ const settingsSchema = new mongoose.Schema({
   companyWebsite: String,
   headerText: String,
   footerText: String,
+  primaryColor: {
+    type: String,
+    default: '#2563eb'
+  },
   currency: {
     type: String,
     default: 'USD'
@@ -18,7 +22,7 @@ const settingsSchema = new mongoose.Schema({
     type: String,
     default: 'DD/MM/YYYY'
   },
-  
+
   // Email Settings
   emailProvider: {
     type: String,
@@ -30,7 +34,7 @@ const settingsSchema = new mongoose.Schema({
   gmailPassword: String,
   office365Email: String,
   office365Password: String,
-  
+
   // Email Notifications
   sendAssetAssignmentNotification: {
     type: Boolean,
@@ -48,7 +52,7 @@ const settingsSchema = new mongoose.Schema({
     type: Number,
     default: 30
   },
-  
+
   // 2FA Settings
   twoFactorEnabled: {
     type: Boolean,
@@ -60,7 +64,7 @@ const settingsSchema = new mongoose.Schema({
     default: 'totp'
   },
   authyApiKey: String,
-  
+
   // System Settings
   assetQRCodeFormat: {
     type: String,
@@ -71,7 +75,7 @@ const settingsSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
-  
+
   updatedAt: {
     type: Date,
     default: Date.now
