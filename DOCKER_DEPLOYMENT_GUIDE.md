@@ -369,6 +369,13 @@ docker-compose -f docker-compose.dev.yml up -d
 
 ## 📦 Production Deployment
 
+> **Important**: Ensure no other containers (like the development environment) are running on ports 3000, 5000, or 27017 before starting production deployment.
+> 
+> ```bash
+> # Stop development environment first
+> docker-compose -f docker-compose.dev.yml down
+> ```
+
 For production deployment, use the standard `docker-compose.yml`:
 
 ```bash
