@@ -12,7 +12,7 @@ services:
       - mongodb_data_ssl:/data/db
       - mongodb_config_ssl:/data/configdb
     healthcheck:
-      test: [ "CMD-SHELL", "mongosh --eval 'db.adminCommand(\"ping\")' --quiet" ]
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')", "--quiet" ]
       interval: 10s
       timeout: 5s
       retries: 20
