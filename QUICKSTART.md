@@ -10,10 +10,9 @@
 ### Step 1: Start MongoDB
 ```bash
 # Using Docker (recommended)
-    # Cloud Deployment Note:
-    # Use 'mongo:latest' for modern cloud infrastructure (AWS/Azure/GCP) that supports AVX.
-    # Use 'mongo:4.4.18' ONLY for local legacy hardware without AVX support.
-    docker run -d -p 27017:27017 --name mongodb mongo:latest
+    # MongoDB 4.4 is the default for maximum compatibility across all environments (Local/Cloud/AVX/No-AVX).
+    # If you require MongoDB 5.0+ features, ensure your hardware supports AVX instructions.
+    docker run -d -p 27017:27017 --name mongodb mongo:4.4.18
 
 # Or if you have MongoDB installed locally
 mongod
