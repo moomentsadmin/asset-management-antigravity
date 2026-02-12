@@ -11,6 +11,11 @@ services:
     volumes:
       - mongodb_data_ssl:/data/db
       - mongodb_config_ssl:/data/configdb
+    command: [ "mongod", "--wiredTigerCacheSizeGB", "0.25", "--bind_ip_all" ]
+    deploy:
+      resources:
+        limits:
+          memory: 1G
     healthcheck:
       test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')", "--quiet" ]
       interval: 10s
