@@ -10,7 +10,7 @@
 ### Step 1: Start MongoDB
 ```bash
 # Using Docker (recommended)
-docker run -d -p 27017:27017 --name mongodb mongo:latest
+docker run -d -p 27017:27017 --name mongodb mongo:4.4.18
 
 # Or if you have MongoDB installed locally
 mongod
