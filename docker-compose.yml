@@ -16,9 +16,9 @@ services:
     healthcheck:
       test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')", "--quiet" ]
       interval: 10s
-      timeout: 5s
+      timeout: 30s
       retries: 20
-      start_period: 60s
+      start_period: 120s
     networks:
       - asset-management-network
 
@@ -30,8 +30,7 @@ services:
     container_name: asset-management-backend
     restart: unless-stopped
     depends_on:
-      mongodb:
-        condition: service_healthy
+      - mongodb
     environment:
       NODE_ENV: production
       PORT: 5000
