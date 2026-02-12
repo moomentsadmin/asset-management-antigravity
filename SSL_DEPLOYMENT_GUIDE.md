@@ -52,7 +52,7 @@ Follow the prompts.
 Once certificates are obtained, start the full stack:
 
 ```bash
-docker-compose -f docker-compose.ssl.yml up -d
+docker compose -f docker-compose.ssl.yml up -d
 ```
 
 ---
@@ -63,21 +63,21 @@ docker-compose -f docker-compose.ssl.yml up -d
 The `certbot` container runs in the background and checks for certificate renewal every 12 hours. If a certificate is renewed, you may need to reload Nginx:
 
 ```bash
-docker-compose -f docker-compose.ssl.yml exec frontend nginx -s reload
+docker compose -f docker-compose.ssl.yml exec frontend nginx -s reload
 ```
 
 ### Logs
 Check logs to ensure everything is running smoothly:
 
 ```bash
-docker-compose -f docker-compose.ssl.yml logs -f
+docker compose -f docker-compose.ssl.yml logs -f
 ```
 
 ### Stopping the Stack
 To stop the SSL deployment:
 
 ```bash
-docker-compose -f docker-compose.ssl.yml down
+docker compose -f docker-compose.ssl.yml down
 ```
 
 ---

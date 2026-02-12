@@ -21,17 +21,17 @@ Before starting, ensure **Docker Desktop is running** on your system.
 cd e:\docker-local-test\codespaces-react-antigravity-main\codespaces-react-main
 
 # Start all services with build
-docker-compose -f docker-compose.dev.yml up --build
+docker compose -f docker-compose.dev.yml up --build
 ```
 
 ### Option 2: Start in Background
 
 ```powershell
 # Start in detached mode (background)
-docker-compose -f docker-compose.dev.yml up -d --build
+docker compose -f docker-compose.dev.yml up -d --build
 
 # View logs
-docker-compose -f docker-compose.dev.yml logs -f
+docker compose -f docker-compose.dev.yml logs -f
 ```
 
 ---
@@ -198,8 +198,8 @@ dir server\Dockerfile.dev
 **Solution:**
 ```powershell
 # Clean up and rebuild
-docker-compose -f docker-compose.dev.yml down -v
-docker-compose -f docker-compose.dev.yml up --build --force-recreate
+docker compose -f docker-compose.dev.yml down -v
+docker compose -f docker-compose.dev.yml up --build --force-recreate
 ```
 
 ### Issue 5: Services Won't Stop
@@ -207,7 +207,7 @@ docker-compose -f docker-compose.dev.yml up --build --force-recreate
 **Solution:**
 ```powershell
 # Force stop all containers
-docker-compose -f docker-compose.dev.yml down --remove-orphans
+docker compose -f docker-compose.dev.yml down --remove-orphans
 
 # If that doesn't work
 docker stop $(docker ps -aq)
@@ -220,36 +220,36 @@ docker rm $(docker ps -aq)
 
 ### View Running Containers
 ```powershell
-docker-compose -f docker-compose.dev.yml ps
+docker compose -f docker-compose.dev.yml ps
 ```
 
 ### View Logs
 ```powershell
 # All services
-docker-compose -f docker-compose.dev.yml logs -f
+docker compose -f docker-compose.dev.yml logs -f
 
 # Specific service
-docker-compose -f docker-compose.dev.yml logs -f backend
-docker-compose -f docker-compose.dev.yml logs -f frontend
-docker-compose -f docker-compose.dev.yml logs -f mongodb
+docker compose -f docker-compose.dev.yml logs -f backend
+docker compose -f docker-compose.dev.yml logs -f frontend
+docker compose -f docker-compose.dev.yml logs -f mongodb
 ```
 
 ### Restart Services
 ```powershell
 # Restart all
-docker-compose -f docker-compose.dev.yml restart
+docker compose -f docker-compose.dev.yml restart
 
 # Restart specific service
-docker-compose -f docker-compose.dev.yml restart backend
+docker compose -f docker-compose.dev.yml restart backend
 ```
 
 ### Stop Services
 ```powershell
 # Stop all (keeps data)
-docker-compose -f docker-compose.dev.yml down
+docker compose -f docker-compose.dev.yml down
 
 # Stop and remove data (WARNING: Deletes database)
-docker-compose -f docker-compose.dev.yml down -v
+docker compose -f docker-compose.dev.yml down -v
 ```
 
 ---
@@ -272,29 +272,29 @@ docker-compose -f docker-compose.dev.yml down -v
 
 **Frontend:**
 ```powershell
-docker-compose -f docker-compose.dev.yml exec frontend npm install <package-name>
+docker compose -f docker-compose.dev.yml exec frontend npm install <package-name>
 ```
 
 **Backend:**
 ```powershell
-docker-compose -f docker-compose.dev.yml exec backend npm install <package-name>
+docker compose -f docker-compose.dev.yml exec backend npm install <package-name>
 ```
 
 ### Accessing Container Shell
 
 **Backend:**
 ```powershell
-docker-compose -f docker-compose.dev.yml exec backend sh
+docker compose -f docker-compose.dev.yml exec backend sh
 ```
 
 **Frontend:**
 ```powershell
-docker-compose -f docker-compose.dev.yml exec frontend sh
+docker compose -f docker-compose.dev.yml exec frontend sh
 ```
 
 **MongoDB:**
 ```powershell
-docker-compose -f docker-compose.dev.yml exec mongodb mongosh -u admin -p password
+docker compose -f docker-compose.dev.yml exec mongodb mongosh -u admin -p password
 ```
 
 ---
@@ -304,7 +304,7 @@ docker-compose -f docker-compose.dev.yml exec mongodb mongosh -u admin -p passwo
 After deployment, verify everything is working:
 
 - [ ] Docker Desktop is running
-- [ ] All 3 containers are running (`docker-compose ps`)
+- [ ] All 3 containers are running (`docker compose ps`)
 - [ ] Frontend accessible at http://localhost:3000
 - [ ] Backend health check returns OK: http://localhost:5000/api/health
 - [ ] Can login with admin credentials
@@ -317,25 +317,25 @@ After deployment, verify everything is working:
 
 ```powershell
 # Start everything
-docker-compose -f docker-compose.dev.yml up --build
+docker compose -f docker-compose.dev.yml up --build
 
 # Start in background
-docker-compose -f docker-compose.dev.yml up -d --build
+docker compose -f docker-compose.dev.yml up -d --build
 
 # View logs
-docker-compose -f docker-compose.dev.yml logs -f
+docker compose -f docker-compose.dev.yml logs -f
 
 # Stop everything
-docker-compose -f docker-compose.dev.yml down
+docker compose -f docker-compose.dev.yml down
 
 # Restart
-docker-compose -f docker-compose.dev.yml restart
+docker compose -f docker-compose.dev.yml restart
 
 # Clean everything (including data)
-docker-compose -f docker-compose.dev.yml down -v
+docker compose -f docker-compose.dev.yml down -v
 
 # View running containers
-docker-compose -f docker-compose.dev.yml ps
+docker compose -f docker-compose.dev.yml ps
 
 # View resource usage
 docker stats
@@ -347,24 +347,24 @@ docker stats
 
 ### Check Logs
 ```powershell
-docker-compose -f docker-compose.dev.yml logs -f
+docker compose -f docker-compose.dev.yml logs -f
 ```
 
 ### Check Container Status
 ```powershell
-docker-compose -f docker-compose.dev.yml ps
+docker compose -f docker-compose.dev.yml ps
 ```
 
 ### Full Reset
 ```powershell
 # Stop everything
-docker-compose -f docker-compose.dev.yml down -v
+docker compose -f docker-compose.dev.yml down -v
 
 # Remove all images
-docker-compose -f docker-compose.dev.yml down --rmi all
+docker compose -f docker-compose.dev.yml down --rmi all
 
 # Start fresh
-docker-compose -f docker-compose.dev.yml up --build
+docker compose -f docker-compose.dev.yml up --build
 ```
 
 ---

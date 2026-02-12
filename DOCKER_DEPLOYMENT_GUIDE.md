@@ -16,10 +16,10 @@
 
 ```bash
 # Start all services (MongoDB, Backend, Frontend)
-docker-compose -f docker-compose.dev.yml up --build
+docker compose -f docker-compose.dev.yml up --build
 
 # Or run in detached mode (background)
-docker-compose -f docker-compose.dev.yml up -d --build
+docker compose -f docker-compose.dev.yml up -d --build
 ```
 
 ### Access the Application
@@ -69,69 +69,69 @@ Email: admin@company.com
 ### Start Services
 ```bash
 # Start all services
-docker-compose -f docker-compose.dev.yml up
+docker compose -f docker-compose.dev.yml up
 
 # Start in background
-docker-compose -f docker-compose.dev.yml up -d
+docker compose -f docker-compose.dev.yml up -d
 
 # Start with rebuild
-docker-compose -f docker-compose.dev.yml up --build
+docker compose -f docker-compose.dev.yml up --build
 
 # Start specific service
-docker-compose -f docker-compose.dev.yml up backend
+docker compose -f docker-compose.dev.yml up backend
 ```
 
 ### Stop Services
 ```bash
 # Stop all services
-docker-compose -f docker-compose.dev.yml down
+docker compose -f docker-compose.dev.yml down
 
 # Stop and remove volumes (WARNING: Deletes database data)
-docker-compose -f docker-compose.dev.yml down -v
+docker compose -f docker-compose.dev.yml down -v
 
 # Stop specific service
-docker-compose -f docker-compose.dev.yml stop backend
+docker compose -f docker-compose.dev.yml stop backend
 ```
 
 ### View Logs
 ```bash
 # View all logs
-docker-compose -f docker-compose.dev.yml logs
+docker compose -f docker-compose.dev.yml logs
 
 # Follow logs (real-time)
-docker-compose -f docker-compose.dev.yml logs -f
+docker compose -f docker-compose.dev.yml logs -f
 
 # View specific service logs
-docker-compose -f docker-compose.dev.yml logs backend
-docker-compose -f docker-compose.dev.yml logs frontend
-docker-compose -f docker-compose.dev.yml logs mongodb
+docker compose -f docker-compose.dev.yml logs backend
+docker compose -f docker-compose.dev.yml logs frontend
+docker compose -f docker-compose.dev.yml logs mongodb
 
 # View last 100 lines
-docker-compose -f docker-compose.dev.yml logs --tail=100
+docker compose -f docker-compose.dev.yml logs --tail=100
 ```
 
 ### Restart Services
 ```bash
 # Restart all services
-docker-compose -f docker-compose.dev.yml restart
+docker compose -f docker-compose.dev.yml restart
 
 # Restart specific service
-docker-compose -f docker-compose.dev.yml restart backend
+docker compose -f docker-compose.dev.yml restart backend
 ```
 
 ### Execute Commands in Containers
 ```bash
 # Access backend shell
-docker-compose -f docker-compose.dev.yml exec backend sh
+docker compose -f docker-compose.dev.yml exec backend sh
 
 # Access MongoDB shell
-docker-compose -f docker-compose.dev.yml exec mongodb mongosh -u admin -p password
+docker compose -f docker-compose.dev.yml exec mongodb mongosh -u admin -p password
 
 # Run npm commands in backend
-docker-compose -f docker-compose.dev.yml exec backend npm install <package>
+docker compose -f docker-compose.dev.yml exec backend npm install <package>
 
 # Run npm commands in frontend
-docker-compose -f docker-compose.dev.yml exec frontend npm install <package>
+docker compose -f docker-compose.dev.yml exec frontend npm install <package>
 ```
 
 ---
@@ -204,66 +204,66 @@ taskkill /PID <PID> /F
 
 ```bash
 # Check MongoDB is running
-docker-compose -f docker-compose.dev.yml ps
+docker compose -f docker-compose.dev.yml ps
 
 # View MongoDB logs
-docker-compose -f docker-compose.dev.yml logs mongodb
+docker compose -f docker-compose.dev.yml logs mongodb
 
 # Restart MongoDB
-docker-compose -f docker-compose.dev.yml restart mongodb
+docker compose -f docker-compose.dev.yml restart mongodb
 ```
 
 ### Backend Not Starting
 
 ```bash
 # View backend logs
-docker-compose -f docker-compose.dev.yml logs backend
+docker compose -f docker-compose.dev.yml logs backend
 
 # Check if MongoDB is healthy
-docker-compose -f docker-compose.dev.yml ps
+docker compose -f docker-compose.dev.yml ps
 
 # Rebuild backend
-docker-compose -f docker-compose.dev.yml up --build backend
+docker compose -f docker-compose.dev.yml up --build backend
 ```
 
 ### Frontend Not Loading
 
 ```bash
 # View frontend logs
-docker-compose -f docker-compose.dev.yml logs frontend
+docker compose -f docker-compose.dev.yml logs frontend
 
 # Check if backend is running
 curl http://localhost:5000/api/health
 
 # Rebuild frontend
-docker-compose -f docker-compose.dev.yml up --build frontend
+docker compose -f docker-compose.dev.yml up --build frontend
 ```
 
 ### Hot Reload Not Working
 
 ```bash
 # Restart the service
-docker-compose -f docker-compose.dev.yml restart frontend
-docker-compose -f docker-compose.dev.yml restart backend
+docker compose -f docker-compose.dev.yml restart frontend
+docker compose -f docker-compose.dev.yml restart backend
 
 # Check volume mounts
-docker-compose -f docker-compose.dev.yml config
+docker compose -f docker-compose.dev.yml config
 ```
 
 ### Clear Everything and Start Fresh
 
 ```bash
 # Stop all containers
-docker-compose -f docker-compose.dev.yml down
+docker compose -f docker-compose.dev.yml down
 
 # Remove volumes (WARNING: Deletes database)
-docker-compose -f docker-compose.dev.yml down -v
+docker compose -f docker-compose.dev.yml down -v
 
 # Remove images
-docker-compose -f docker-compose.dev.yml down --rmi all
+docker compose -f docker-compose.dev.yml down --rmi all
 
 # Rebuild and start
-docker-compose -f docker-compose.dev.yml up --build
+docker compose -f docker-compose.dev.yml up --build
 ```
 
 ---
@@ -274,7 +274,7 @@ docker-compose -f docker-compose.dev.yml up --build
 
 ```bash
 # Check all services
-docker-compose -f docker-compose.dev.yml ps
+docker compose -f docker-compose.dev.yml ps
 
 # Check specific service health
 docker inspect asset-management-backend-dev --format='{{.State.Health.Status}}'
@@ -294,7 +294,7 @@ docker stats asset-management-backend-dev
 
 ```bash
 # Access MongoDB shell
-docker-compose -f docker-compose.dev.yml exec mongodb mongosh -u admin -p password
+docker compose -f docker-compose.dev.yml exec mongodb mongosh -u admin -p password
 
 # In MongoDB shell:
 use asset-management
@@ -322,24 +322,24 @@ db.assets.find()
 3. **Installing Dependencies**:
    ```bash
    # Frontend
-   docker-compose -f docker-compose.dev.yml exec frontend npm install <package>
+   docker compose -f docker-compose.dev.yml exec frontend npm install <package>
    
    # Backend
-   docker-compose -f docker-compose.dev.yml exec backend npm install <package>
+   docker compose -f docker-compose.dev.yml exec backend npm install <package>
    ```
 
 ### Database Management
 
 ```bash
 # Backup database
-docker-compose -f docker-compose.dev.yml exec mongodb mongodump --uri="mongodb://admin:password@localhost:27017/asset-management?authSource=admin" --out=/data/backup
+docker compose -f docker-compose.dev.yml exec mongodb mongodump --uri="mongodb://admin:password@localhost:27017/asset-management?authSource=admin" --out=/data/backup
 
 # Restore database
-docker-compose -f docker-compose.dev.yml exec mongodb mongorestore --uri="mongodb://admin:password@localhost:27017" /data/backup
+docker compose -f docker-compose.dev.yml exec mongodb mongorestore --uri="mongodb://admin:password@localhost:27017" /data/backup
 
 # Reset database (WARNING: Deletes all data)
-docker-compose -f docker-compose.dev.yml down -v
-docker-compose -f docker-compose.dev.yml up -d
+docker compose -f docker-compose.dev.yml down -v
+docker compose -f docker-compose.dev.yml up -d
 ```
 
 ---
@@ -373,17 +373,17 @@ docker-compose -f docker-compose.dev.yml up -d
 > 
 > ```bash
 > # Stop development environment first
-> docker-compose -f docker-compose.dev.yml down
+> docker compose -f docker-compose.dev.yml down
 > ```
 
 For production deployment, use the standard `docker-compose.yml`:
 
 ```bash
 # Build for production
-docker-compose up --build -d
+docker compose up --build -d
 
 # View production logs
-docker-compose logs -f
+docker compose logs -f
 ```
 
 **Important**: Update environment variables for production:
@@ -408,22 +408,22 @@ docker-compose logs -f
 
 ### Start Development
 ```bash
-docker-compose -f docker-compose.dev.yml up
+docker compose -f docker-compose.dev.yml up
 ```
 
 ### Stop Development
 ```bash
-docker-compose -f docker-compose.dev.yml down
+docker compose -f docker-compose.dev.yml down
 ```
 
 ### View Logs
 ```bash
-docker-compose -f docker-compose.dev.yml logs -f
+docker compose -f docker-compose.dev.yml logs -f
 ```
 
 ### Rebuild
 ```bash
-docker-compose -f docker-compose.dev.yml up --build
+docker compose -f docker-compose.dev.yml up --build
 ```
 
 ### Access Application
