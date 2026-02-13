@@ -38,7 +38,7 @@ const Login = ({ onLogin, settings }) => {
   const primaryColor = settings?.primaryColor || '#2563eb'; // Default blue-600
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950 font-sans selection:bg-blue-600 selection:text-white"
+    <div className="min-h-screen flex items-center justify-center py-12 bg-slate-950 font-sans selection:bg-blue-600 selection:text-white"
       style={{ '--primary-color': primaryColor }}>
       <div className="w-full max-w-md px-6">
 
