@@ -16,16 +16,16 @@ if [ "$confirm" != "yes" ]; then
 fi
 
 echo "🛑 Stopping all containers..."
-docker compose -f docker-compose.yml -f docker-compose.ssl.yml down
+echo "🛑 Stopping all containers and removing volumes..."
+# Use docker compose down -v to remove volumes associated with the project automatically
+docker compose -f docker-compose.ssl.yml down -v
+docker compose -f docker-compose.yml down -v
 
-echo "🧹 Removing MongoDB volumes..."
-# Attempt to remove specific volumes for both standard and SSL configs
-docker volume rm codespaces-antigravity-react-main_mongodb_data
-docker volume rm codespaces-antigravity-react-main_mongodb_config
-docker volume rm codespaces-antigravity-react-main_mongodb_data_ssl
-docker volume rm codespaces-antigravity-react-main_mongodb_config_ssl
-docker volume rm codespaces-antigravity-react-main_mongodb_data_dev
-docker volume rm codespaces-antigravity-react-main_mongodb_config_dev
+echo "🧹 Attempting to remove any residual volumes (just in case)..."
+# Just a fallback for common names, but 'down -v' should have handled it
+docker volume rm asset-management-antigravity_mongodb_data 2>/dev/null
+docker volume rm asset-management-antigravity_mongodb_config 2>/dev/null
+docker volume rm codespaces-antigravity-react-main_mongodb_data 2>/dev/null
 
 # Fallback: Prune dangling volumes
 docker volume prune -f
