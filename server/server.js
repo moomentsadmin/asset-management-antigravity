@@ -36,8 +36,26 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 // Flag to track if database is initialized
 let dbInitialized = false;
 
+// Construct MONGODB_URI with safe encoding for special characters
+let mongoUri = process.env.MONGODB_URI;
+
+// If MONGO_HOST is specified, prefer constructing the URI manually to handle special chars in passwords
+if (process.env.MONGO_HOST) {
+  const user = encodeURIComponent(process.env.MONGO_USER || 'admin');
+  const pass = encodeURIComponent(process.env.MONGO_PASSWORD || 'password');
+  const host = process.env.MONGO_HOST;
+  const port = process.env.MONGO_PORT || '27017';
+  const db = process.env.MONGO_DB || 'asset-management';
+  const authSource = process.env.MONGO_AUTH_SOURCE || 'admin';
+
+  mongoUri = `mongodb://${user}:${pass}@${host}:${port}/${db}?authSource=${authSource}`;
+  console.log(`🔧 Constructed MongoDB URI connecting to host: ${host}`);
+} else if (!mongoUri) {
+  mongoUri = 'mongodb://localhost:27017/asset-management';
+}
+
 // Database Connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/asset-management', {
+mongoose.connect(mongoUri, {
   serverSelectionTimeoutMS: 30000,
   connectTimeoutMS: 30000,
   socketTimeoutMS: 45000
