@@ -10,6 +10,10 @@ if ! docker compose version >/dev/null 2>&1; then
   exit 1
 fi
 
+if [ -f .env ]; then
+  export $(grep -v '^#' .env | xargs)
+fi
+
 domains=($DOMAIN_NAME)
 rsa_key_size=4096
 data_path="./ssl/certbot"
