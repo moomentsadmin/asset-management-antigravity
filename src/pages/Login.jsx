@@ -11,14 +11,14 @@ const Login = ({ onLogin, settings }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    /* ... existing handleSubmit logic ... */
-    // Since I'm replacing the whole component logic block, I need to include the actual logic here or use a smaller chunk.
-    // Given the tool limitations, let's rewrite the logic inside.
     setError('');
     setLoading(true);
 
     try {
-      const response = await axios.post('/api/auth/login', { username, password });
+      const response = await axios.post('/api/auth/login', {
+        username: username.trim(),
+        password
+      });
 
       if (response.data.requiresTwoFactor) {
         navigate('/2fa', { state: { tempToken: response.data.tempToken } });
@@ -29,10 +29,20 @@ const Login = ({ onLogin, settings }) => {
         navigate('/dashboard');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid credentials. Please try again.');
+      console.error('Login error:', err);
+      if (err.response?.status === 503) {
+        setError('System is initializing. Please wait a moment and try again.');
+      } else {
+        setError(err.response?.data?.message || 'Invalid credentials. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleForgotPassword = (e) => {
+    e.preventDefault();
+    alert('Please contact your system administrator to reset your password.');
   };
 
   const primaryColor = settings?.primaryColor || '#2563eb'; // Default blue-600
@@ -80,7 +90,7 @@ const Login = ({ onLogin, settings }) => {
               <input
                 type="text"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(e) => { setUsername(e.target.value); setError(''); }}
                 className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all placeholder-slate-600"
                 style={{ '--tw-ring-color': primaryColor }}
                 placeholder="Ex. admin"
@@ -91,12 +101,12 @@ const Login = ({ onLogin, settings }) => {
             <div className="space-y-1.5">
               <div className="flex justify-between items-center">
                 <label className="block text-sm font-medium text-slate-300">Password</label>
-                <a href="#" className="text-xs text-blue-400 hover:text-blue-300 transition-colors" style={{ color: primaryColor }}>Forgot password?</a>
+                <button type="button" onClick={handleForgotPassword} className="text-xs text-blue-400 hover:text-blue-300 transition-colors" style={{ color: primaryColor }}>Forgot password?</button>
               </div>
               <input
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => { setPassword(e.target.value); setError(''); }}
                 className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all placeholder-slate-600"
                 style={{ '--tw-ring-color': primaryColor }}
                 placeholder="••••••••"

@@ -15,7 +15,7 @@ const Assets = () => {
   const [formData, setFormData] = useState({
     assetTag: '',
     name: '',
-    type: 'hardware',
+    type: '',
     serialNumber: '',
     manufacturer: '',
     model: '',
@@ -41,7 +41,10 @@ const Assets = () => {
     oldLoaner: '',
     supplierName: '',
     invoiceDate: '',
-    invoiceNo: ''
+    invoiceNo: '',
+    warrantyExpiry: '',
+    warrantyProvider: '',
+    photoUrl: ''
   });
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -98,7 +101,7 @@ const Assets = () => {
       setFormData({
         assetTag: '',
         name: '',
-        type: 'hardware',
+        type: assetTypes.length > 0 ? assetTypes[0].name : '',
         serialNumber: '',
         manufacturer: '',
         model: '',
@@ -123,10 +126,16 @@ const Assets = () => {
         oldLoaner: '',
         supplierName: '',
         invoiceDate: '',
-        invoiceNo: ''
+        invoiceNo: '',
+        warrantyExpiry: '',
+        warrantyProvider: '',
+        photoUrl: ''
       });
+      // Refresh assets to show newly created one
+       fetchAssets();
     } catch (err) {
       console.error('Failed to create asset:', err);
+      alert('Failed to create asset. Please check required fields.');
     }
   };
 
@@ -140,6 +149,46 @@ const Assets = () => {
       }
     }
   };
+
+  const handleExportCSV = () => {
+    const headers = [
+      'Asset Tag', 'Asset Model', 'Type', 'Status', 'Location', 'Serial Number', 
+      'Purchase Price', 'Manufacturer', 'Vendor', 'Supplier', 'Employee ID', 
+      'Assigned Date', 'Warranty Expiry'
+    ];
+    
+    const csvContent = [
+      headers.join(','),
+      ...assets.map(asset => [
+        asset.assetTag,
+        asset.name,
+        asset.type,
+        asset.status,
+        asset.location?.name || '',
+        asset.serialNumber,
+        asset.purchasePrice,
+        asset.manufacturer,
+        asset.vendor,
+        asset.supplierName,
+        asset.employeeId,
+        asset.laptopAssignedDate ? new Date(asset.laptopAssignedDate).toLocaleDateString() : '',
+        asset.warrantyExpiry ? new Date(asset.warrantyExpiry).toLocaleDateString() : ''
+      ].map(field => `"${(field || '').toString().replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `assets_export_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
 
   const formatCurrency = (value, currency) => {
     return new Intl.NumberFormat('en-US', {
@@ -174,7 +223,9 @@ const Assets = () => {
     oldLoaner: 'None',
     supplierName: 'Apple Store',
     invoiceDate: '2023-12-01',
-    invoiceNo: 'INV-12345'
+    invoiceNo: 'INV-12345',
+    warrantyProvider: 'AppleCare',
+    warrantyExpiry: '2025-01-01'
   };
 
   if (loading) {
@@ -187,6 +238,15 @@ const Assets = () => {
         <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Assets</h1>
         {['admin', 'manager'].includes(user?.role) && (
           <div className="flex gap-2">
+            <button
+              onClick={handleExportCSV}
+              className="px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Export CSV
+            </button>
             <button
               onClick={() => setIsImportModalOpen(true)}
               className="px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-2"
@@ -252,14 +312,17 @@ const Assets = () => {
               className="px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg dark:bg-slate-800 dark:text-white"
               required
             />
-            <input
-              type="text"
-              placeholder="Asset Model Name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg dark:bg-slate-800 dark:text-white"
-              required
-            />
+            <div className="flex flex-col">
+              <input
+                type="text"
+                placeholder="Asset Model (Name)"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg dark:bg-slate-800 dark:text-white"
+                required
+              />
+              <span className="text-[10px] text-slate-400 ml-1">Example: Dell Latitude 5420</span>
+            </div>
             <select
               value={formData.type}
               onChange={(e) => setFormData({ ...formData, type: e.target.value })}
@@ -285,7 +348,7 @@ const Assets = () => {
             />
             <input
               type="text"
-              placeholder="Model"
+              placeholder="Model No."
               value={formData.model}
               onChange={(e) => setFormData({ ...formData, model: e.target.value })}
               className="px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg dark:bg-slate-800 dark:text-white"
@@ -454,6 +517,33 @@ const Assets = () => {
               value={formData.invoiceNo}
               onChange={(e) => setFormData({ ...formData, invoiceNo: e.target.value })}
               className="px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg dark:bg-slate-800 dark:text-white"
+            />
+
+            <div className="md:col-span-2 border-t border-slate-200 dark:border-slate-800 pt-4 mt-2">
+              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Warranty & Media</h3>
+            </div>
+            <input
+              type="text"
+              placeholder="Warranty Provider"
+              value={formData.warrantyProvider}
+              onChange={(e) => setFormData({ ...formData, warrantyProvider: e.target.value })}
+              className="px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg dark:bg-slate-800 dark:text-white"
+            />
+            <div className="flex flex-col">
+              <label className="text-xs text-slate-500 ml-1 mb-1">Warranty Expiry Date</label>
+              <input
+                type="date"
+                value={formData.warrantyExpiry}
+                onChange={(e) => setFormData({ ...formData, warrantyExpiry: e.target.value })}
+                className="px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg dark:bg-slate-800 dark:text-white"
+              />
+            </div>
+            <input
+              type="text"
+              placeholder="Main Photo URL"
+              value={formData.photoUrl}
+              onChange={(e) => setFormData({ ...formData, photoUrl: e.target.value })}
+              className="px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg dark:bg-slate-800 dark:text-white md:col-span-2"
             />
 
             <div className="md:col-span-2 flex gap-2">

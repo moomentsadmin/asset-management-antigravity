@@ -57,6 +57,13 @@ const Employees = () => {
     e.preventDefault();
     setSubmitting(true);
     try {
+      // Basic validation
+      if (!formData.location) {
+        alert('Please select a location');
+        setSubmitting(false);
+        return;
+      }
+
       if (editingId) {
         const response = await axios.put(`/api/employees/${editingId}`, formData);
         setEmployees(employees.map(emp => emp._id === editingId ? response.data : emp));
@@ -76,9 +83,12 @@ const Employees = () => {
         employmentType: 'full_time',
         location: ''
       });
+      fetchEmployees(); // Ensure list is fresh
     } catch (err) {
       console.error('Failed to save employee:', err);
-      alert(err.response?.data?.message || 'Failed to save employee');
+      // Detailed error message
+      const msg = err.response?.data?.message || err.message || 'Failed to save employee';
+      alert(`Error: ${msg}`);
     } finally {
       setSubmitting(false);
     }
@@ -106,7 +116,36 @@ const Employees = () => {
       setEmployees(employees.filter(e => e._id !== id));
     } catch (err) {
       console.error(err);
-      alert('Failed to delete employee');
+      alert('Failed to delete employee: ' + (err.response?.data?.message || err.message));
+    }
+  };
+
+  const handleExportCSV = () => {
+    const headers = ['Employee ID', 'First Name', 'Last Name', 'Email', 'Department', 'Designation', 'Type', 'Location'];
+    const csvContent = [
+      headers.join(','),
+      ...employees.map(emp => [
+        emp.employeeId,
+        emp.firstName,
+        emp.lastName,
+        emp.email,
+        emp.department,
+        emp.designation,
+        emp.employmentType,
+        emp.location?.name || ''
+      ].map(field => `"${(field || '').toString().replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `employees_export_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   };
 
@@ -131,6 +170,15 @@ const Employees = () => {
         <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Employees</h1>
         {['admin', 'manager'].includes(user?.role) && (
           <div className="flex gap-2">
+            <button
+              onClick={handleExportCSV}
+              className="px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Export CSV
+            </button>
             <button
               onClick={() => setIsImportModalOpen(true)}
               className="px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-2"
@@ -211,6 +259,7 @@ const Employees = () => {
               value={formData.department}
               onChange={(e) => setFormData({ ...formData, department: e.target.value })}
               className="px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg dark:bg-slate-800 dark:text-white"
+              required
             />
             <input
               type="text"
@@ -233,6 +282,7 @@ const Employees = () => {
               value={formData.location}
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
               className="px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg dark:bg-slate-800 dark:text-white"
+              required
             >
               <option value="">Select Location</option>
               {locations.map(loc => (

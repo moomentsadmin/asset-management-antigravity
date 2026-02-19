@@ -23,7 +23,9 @@ router.get('/', authenticateToken, async (req, res) => {
       filter.$or = [
         { name: { $regex: search, $options: 'i' } },
         { assetTag: { $regex: search, $options: 'i' } },
-        { serialNumber: { $regex: search, $options: 'i' } }
+        { serialNumber: { $regex: search, $options: 'i' } },
+        { model: { $regex: search, $options: 'i' } },
+        { manufacturer: { $regex: search, $options: 'i' } }
       ];
     }
 

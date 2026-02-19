@@ -15,10 +15,10 @@ const AssetDetail = () => {
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState({});
   const [newNote, setNewNote] = useState('');
+  const [postingNote, setPostingNote] = useState(false);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {
-    fetchAssetDetail();
     fetchAssetDetail();
     fetchAssignmentHistory();
     fetchLocations();
@@ -84,13 +84,27 @@ const AssetDetail = () => {
   };
 
   const handleAddNote = async () => {
-    if (!newNote.trim()) return;
+    if (!newNote.trim() || postingNote) return;
+    setPostingNote(true);
     try {
       const response = await axios.post(`/api/assets/${id}/notes`, { content: newNote });
       setAsset(response.data);
       setNewNote('');
     } catch (err) {
       console.error('Failed to add note:', err);
+    } finally {
+      setPostingNote(false);
+    }
+  };
+
+  const handleMoveToMaintenance = async () => {
+    if (!window.confirm('Are you sure you want to move this asset to maintenance?')) return;
+    try {
+      const response = await axios.put(`/api/assets/${id}`, { status: 'in_maintenance' });
+      setAsset(response.data);
+      setFormData(prev => ({ ...prev, status: 'in_maintenance' }));
+    } catch (err) {
+      console.error('Failed to update status:', err);
     }
   };
 
@@ -102,8 +116,8 @@ const AssetDetail = () => {
     return <div className="p-6 text-center text-red-600">Asset not found</div>;
   }
 
-  const DetailItem = ({ label, value, color }) => (
-    <div className="space-y-1 overflow-hidden">
+  const DetailItem = ({ label, value, color, fullWidth }) => (
+    <div className={`space-y-1 overflow-hidden ${fullWidth ? 'col-span-2' : ''}`}>
       <p className="text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider font-bold">{label}</p>
       <p className={`text-base font-semibold break-words ${color || 'text-slate-900 dark:text-white'}`}>{value || '-'}</p>
     </div>
@@ -119,12 +133,22 @@ const AssetDetail = () => {
           <span className="group-hover:-translate-x-1 transition-transform">←</span> Back to Assets
         </button>
         {['admin', 'manager'].includes(user?.role) && (
-          <button
-            onClick={() => setEditMode(!editMode)}
-            className={`px-6 py-2 rounded-xl font-bold transition-all shadow-sm ${editMode ? 'bg-slate-200 text-slate-800' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
-          >
-            {editMode ? 'Cancel Editing' : 'Edit Asset'}
-          </button>
+          <div className="flex gap-2">
+            {!editMode && asset.status !== 'in_maintenance' && (
+              <button
+                onClick={handleMoveToMaintenance}
+                className="px-6 py-2 bg-amber-500 text-white rounded-xl font-bold hover:bg-amber-600 transition-all shadow-sm"
+              >
+                Move to Maintenance
+              </button>
+            )}
+            <button
+              onClick={() => setEditMode(!editMode)}
+              className={`px-6 py-2 rounded-xl font-bold transition-all shadow-sm ${editMode ? 'bg-slate-200 text-slate-800' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+            >
+              {editMode ? 'Cancel Editing' : 'Edit Asset'}
+            </button>
+          </div>
         )}
       </div>
 
@@ -134,13 +158,14 @@ const AssetDetail = () => {
           <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 p-8">
             <div className="flex justify-between items-start mb-8">
               <div>
+                <p className="text-xs font-bold text-slate-500 uppercase mb-1">Asset Model</p>
                 <h1 className="text-3xl font-black text-slate-900 dark:text-white leading-tight">{asset.name}</h1>
                 <p className="text-slate-500 font-medium">{asset.serialNumber}</p>
               </div>
               <span className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest ${asset.status === 'available' ? 'bg-emerald-100 text-emerald-800' :
                 asset.status === 'assigned' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'
                 }`}>
-                {asset.status}
+                {asset.status.replace('_', ' ')}
               </span>
             </div>
 
@@ -358,8 +383,9 @@ const AssetDetail = () => {
                   <div className="space-y-4">
                     <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Contact & Forms</h4>
                     <div className="grid grid-cols-2 gap-4">
-                      <DetailItem label="Int. Mail" value={asset.internalMailId} />
-                      <DetailItem label="Ext. Mail" value={asset.clientMailId} />
+                      {/* Emails can be long, so taking full width if needed, or ensuring break-all via DetailItem */}
+                      <DetailItem label="Int. Mail" value={asset.internalMailId} fullWidth />
+                      <DetailItem label="Ext. Mail" value={asset.clientMailId} fullWidth />
                       <DetailItem label="Ack. Form" value={asset.acknowledgementForm} />
                     </div>
                   </div>
@@ -418,9 +444,10 @@ const AssetDetail = () => {
                 />
                 <button
                   onClick={handleAddNote}
-                  className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 dark:shadow-none"
+                  disabled={postingNote}
+                  className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 dark:shadow-none disabled:opacity-50"
                 >
-                  Post
+                  {postingNote ? '...' : 'Post'}
                 </button>
               </div>
               <div className="space-y-6">
