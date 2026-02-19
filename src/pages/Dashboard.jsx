@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -140,17 +141,17 @@ const Dashboard = ({ settings }) => {
 
       {/* Primary KPI Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <StatCard label="Total Assets" value={stats?.totalAssets || 0} icon={<Icons.Asset />} />
-        <StatCard label="Assigned" value={stats?.assignedAssets || 0} icon={<Icons.Upload />} color="blue" />
-        <StatCard label="Available" value={stats?.availableAssets || 0} icon={<Icons.Check />} color="emerald" />
-        <StatCard label="Maintenance" value={stats?.maintenanceAssets || 0} icon={<Icons.Wrench />} color="amber" />
+        <StatCard label="Total Assets" value={stats?.totalAssets || 0} icon={<Icons.Asset />} to="/assets" />
+        <StatCard label="Assigned" value={stats?.assignedAssets || 0} icon={<Icons.Upload />} color="blue" to="/assets?status=assigned" />
+        <StatCard label="Available" value={stats?.availableAssets || 0} icon={<Icons.Check />} color="emerald" to="/assets?status=available" />
+        <StatCard label="Maintenance" value={stats?.maintenanceAssets || 0} icon={<Icons.Wrench />} color="amber" to="/assets?status=in_maintenance" />
       </div>
 
       {/* Secondary KPI Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatCard label="Total Employees" value={stats?.totalEmployees || 0} icon={<Icons.Person />} color="slate" />
-        <StatCard label="Active Personnel" value={stats?.activeEmployees || 0} icon={<Icons.Check />} color="emerald" />
-        <StatCard label="Registered Users" value={stats?.totalUsers || 0} icon={<Icons.Person />} color="indigo" />
+        <StatCard label="Total Employees" value={stats?.totalEmployees || 0} icon={<Icons.Person />} color="slate" to="/employees" />
+        <StatCard label="Active Personnel" value={stats?.activeEmployees || 0} icon={<Icons.Check />} color="emerald" to="/employees" />
+        <StatCard label="Registered Users" value={stats?.totalUsers || 0} icon={<Icons.Person />} color="indigo" to="/users" />
       </div>
 
       {/* Depreciation Section */}
@@ -254,7 +255,7 @@ const Dashboard = ({ settings }) => {
   );
 };
 
-const StatCard = ({ label, value, icon, color = 'slate' }) => {
+const StatCard = ({ label, value, icon, color = 'slate', to }) => {
   const styles = {
     blue: 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400',
     emerald: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400',
@@ -263,8 +264,8 @@ const StatCard = ({ label, value, icon, color = 'slate' }) => {
     slate: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
   };
 
-  return (
-    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-5 flex items-start justify-between hover:shadow-md transition-shadow">
+  const Content = (
+    <div className={`bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-5 flex items-start justify-between hover:shadow-md transition-shadow ${to ? 'cursor-pointer' : ''}`}>
       <div>
         <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wide">{label}</p>
         <p className="text-3xl font-bold text-slate-900 dark:text-white mt-1 tracking-tight">{value}</p>
@@ -274,6 +275,8 @@ const StatCard = ({ label, value, icon, color = 'slate' }) => {
       </div>
     </div>
   );
+
+  return to ? <Link to={to} className="block">{Content}</Link> : Content;
 };
 
 export default Dashboard;

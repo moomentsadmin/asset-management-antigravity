@@ -7,7 +7,9 @@ const AssetDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [asset, setAsset] = useState(null);
+  const [assets, setAssets] = useState([]);
   const [locations, setLocations] = useState([]);
+  const [assetTypes, setAssetTypes] = useState([]);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
@@ -17,8 +19,10 @@ const AssetDetail = () => {
 
   useEffect(() => {
     fetchAssetDetail();
+    fetchAssetDetail();
     fetchAssignmentHistory();
     fetchLocations();
+    fetchAssetTypes();
   }, [id]);
 
   const fetchAssetDetail = async () => {
@@ -39,6 +43,15 @@ const AssetDetail = () => {
       setLocations(response.data);
     } catch (err) {
       console.error('Failed to fetch locations:', err);
+    }
+  };
+
+  const fetchAssetTypes = async () => {
+    try {
+      const response = await axios.get('/api/asset-types');
+      setAssetTypes(response.data);
+    } catch (err) {
+      console.error('Failed to fetch asset types:', err);
     }
   };
 
@@ -66,6 +79,7 @@ const AssetDetail = () => {
       setEditMode(false);
     } catch (err) {
       console.error('Failed to update asset:', err);
+      alert('Failed to update asset');
     }
   };
 
@@ -89,9 +103,9 @@ const AssetDetail = () => {
   }
 
   const DetailItem = ({ label, value, color }) => (
-    <div className="space-y-1">
+    <div className="space-y-1 overflow-hidden">
       <p className="text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider font-bold">{label}</p>
-      <p className={`text-base font-semibold ${color || 'text-slate-900 dark:text-white'}`}>{value || '-'}</p>
+      <p className={`text-base font-semibold break-words ${color || 'text-slate-900 dark:text-white'}`}>{value || '-'}</p>
     </div>
   );
 
@@ -124,7 +138,7 @@ const AssetDetail = () => {
                 <p className="text-slate-500 font-medium">{asset.serialNumber}</p>
               </div>
               <span className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest ${asset.status === 'available' ? 'bg-emerald-100 text-emerald-800' :
-                  asset.status === 'assigned' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'
+                asset.status === 'assigned' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'
                 }`}>
                 {asset.status}
               </span>
@@ -141,16 +155,47 @@ const AssetDetail = () => {
                       <input type="text" value={formData.assetTag} onChange={(e) => setFormData({ ...formData, assetTag: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-500 mb-1">Name</label>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Asset Model Name</label>
                       <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Type</label>
+                      <select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500">
+                        {assetTypes.map(type => <option key={type._id} value={type.name}>{type.name}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Status</label>
+                      <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="available">Available</option>
+                        <option value="assigned">Assigned</option>
+                        <option value="in_maintenance">In Maintenance</option>
+                        <option value="retired">Retired</option>
+                        <option value="lost">Lost</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Location</label>
+                      <select value={formData.location?._id || formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select Location</option>
+                        {locations.map(loc => <option key={loc._id} value={loc._id}>{loc.name}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Manufacturer</label>
+                      <input type="text" value={formData.manufacturer} onChange={(e) => setFormData({ ...formData, manufacturer: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Model No.</label>
+                      <input type="text" value={formData.model} onChange={(e) => setFormData({ ...formData, model: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Serial Number</label>
+                      <input type="text" value={formData.serialNumber} onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-slate-500 mb-1">Priority</label>
                       <input type="text" value={formData.priority} onChange={(e) => setFormData({ ...formData, priority: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-slate-500 mb-1">Company/Client</label>
-                      <input type="text" value={formData.companyClient} onChange={(e) => setFormData({ ...formData, companyClient: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
                     </div>
                   </div>
 
@@ -173,14 +218,26 @@ const AssetDetail = () => {
                       <label className="block text-xs font-bold text-slate-500 mb-1">Adapter S/N</label>
                       <input type="text" value={formData.adapterSerialNumber} onChange={(e) => setFormData({ ...formData, adapterSerialNumber: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
                     </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Express Service</label>
+                      <input type="text" value={formData.expressServiceCode} onChange={(e) => setFormData({ ...formData, expressServiceCode: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
                   </div>
 
                   {/* User Details */}
                   <div className="space-y-4">
                     <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800 pb-2">User Details</h3>
                     <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Assigned Date</label>
+                      <input type="date" value={formData.laptopAssignedDate ? new Date(formData.laptopAssignedDate).toISOString().split('T')[0] : ''} onChange={(e) => setFormData({ ...formData, laptopAssignedDate: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
                       <label className="block text-xs font-bold text-slate-500 mb-1">Emp ID</label>
                       <input type="text" value={formData.employeeId} onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Company/Client</label>
+                      <input type="text" value={formData.companyClient} onChange={(e) => setFormData({ ...formData, companyClient: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-slate-500 mb-1">Mobile</label>
@@ -189,6 +246,18 @@ const AssetDetail = () => {
                     <div>
                       <label className="block text-xs font-bold text-slate-500 mb-1">Client Mail</label>
                       <input type="text" value={formData.clientMailId} onChange={(e) => setFormData({ ...formData, clientMailId: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Internal Mail</label>
+                      <input type="text" value={formData.internalMailId} onChange={(e) => setFormData({ ...formData, internalMailId: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Previous Owner</label>
+                      <input type="text" value={formData.oldLoaner} onChange={(e) => setFormData({ ...formData, oldLoaner: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Ack Form</label>
+                      <input type="text" value={formData.acknowledgementForm} onChange={(e) => setFormData({ ...formData, acknowledgementForm: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
                     </div>
                   </div>
 
@@ -200,18 +269,53 @@ const AssetDetail = () => {
                       <input type="text" value={formData.invoiceNo} onChange={(e) => setFormData({ ...formData, invoiceNo: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
                     </div>
                     <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Invoice Date</label>
+                      <input type="date" value={formData.invoiceDate ? new Date(formData.invoiceDate).toISOString().split('T')[0] : ''} onChange={(e) => setFormData({ ...formData, invoiceDate: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
                       <label className="block text-xs font-bold text-slate-500 mb-1">Supplier</label>
                       <input type="text" value={formData.supplierName} onChange={(e) => setFormData({ ...formData, supplierName: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Vendor</label>
+                      <input type="text" value={formData.vendor} onChange={(e) => setFormData({ ...formData, vendor: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-slate-500 mb-1">Purchase Price</label>
                       <input type="number" value={formData.purchasePrice} onChange={(e) => setFormData({ ...formData, purchasePrice: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
                     </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">License</label>
+                      <input type="text" value={formData.license} onChange={(e) => setFormData({ ...formData, license: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
                   </div>
+
+                  {/* Warranty */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800 pb-2">Warranty</h3>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Warranty Expiry</label>
+                      <input type="date" value={formData.warrantyExpiry ? new Date(formData.warrantyExpiry).toISOString().split('T')[0] : ''} onChange={(e) => setFormData({ ...formData, warrantyExpiry: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Warranty Provider</label>
+                      <input type="text" value={formData.warrantyProvider} onChange={(e) => setFormData({ ...formData, warrantyProvider: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                  </div>
+
+                  {/* Attachments */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800 pb-2">Attachments</h3>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Main Photo URL</label>
+                      <input type="text" value={formData.photoUrl || ''} onChange={(e) => setFormData({ ...formData, photoUrl: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                  </div>
+
                 </div>
 
                 <div className="flex gap-4 pt-6 border-t border-slate-100 dark:border-slate-800">
-                  <button type="submit" className="flex-1 py-4 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 dark:shadow-none">Save All Changes</button>
+                  <button type="submit" disabled={loading} className="flex-1 py-4 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 dark:shadow-none disabled:opacity-50">Save All Changes</button>
                   <button type="button" onClick={() => setEditMode(false)} className="px-8 py-4 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-2xl font-black uppercase tracking-widest hover:bg-slate-200 transition-all">Cancel</button>
                 </div>
               </form>
@@ -257,6 +361,30 @@ const AssetDetail = () => {
                       <DetailItem label="Int. Mail" value={asset.internalMailId} />
                       <DetailItem label="Ext. Mail" value={asset.clientMailId} />
                       <DetailItem label="Ack. Form" value={asset.acknowledgementForm} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Warranty & Attachments */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 pt-10 border-t border-slate-100 dark:border-slate-800">
+                  <div className="space-y-4">
+                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Warranty</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <DetailItem label="Provider" value={asset.warrantyProvider} />
+                      <DetailItem label="Expiry" value={asset.warrantyExpiry ? new Date(asset.warrantyExpiry).toLocaleDateString() : '-'} />
+                      <DetailItem label="Status" value={asset.warrantyExpiry && new Date(asset.warrantyExpiry) > new Date() ? 'Active' : 'Expired'} color={asset.warrantyExpiry && new Date(asset.warrantyExpiry) > new Date() ? 'text-emerald-600' : 'text-red-600'} />
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Attachments</h4>
+                    <div className="grid grid-cols-1 gap-4">
+                      {asset.photoUrl && (
+                        <div>
+                          <p className="text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider font-bold mb-2">Main Photo</p>
+                          <img src={asset.photoUrl} alt="Asset" className="w-32 h-32 object-cover rounded-lg border border-slate-200 dark:border-slate-700" />
+                        </div>
+                      )}
+                      {!asset.photoUrl && <p className="text-sm text-slate-400 italic">No attachments</p>}
                     </div>
                   </div>
                 </div>

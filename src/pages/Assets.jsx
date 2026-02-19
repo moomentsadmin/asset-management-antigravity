@@ -151,6 +151,7 @@ const Assets = () => {
   const templateFields = {
     assetTag: 'TAG-001',
     name: 'MacBook Pro',
+    manufacturer: 'Apple',
     type: 'hardware',
     serialNumber: 'SN123456',
     purchasePrice: '1999',
@@ -253,7 +254,7 @@ const Assets = () => {
             />
             <input
               type="text"
-              placeholder="Name"
+              placeholder="Asset Model Name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg dark:bg-slate-800 dark:text-white"
@@ -481,7 +482,7 @@ const Assets = () => {
             <thead className="bg-slate-50 dark:bg-slate-950">
               <tr className="border-b border-slate-200 dark:border-slate-800">
                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Asset Tag</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Name</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Asset Model</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Type</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Location</th>

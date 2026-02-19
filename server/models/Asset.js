@@ -101,6 +101,21 @@ const assetSchema = new mongoose.Schema({
   // Warranty
   warrantyExpiry: Date,
   warrantyProvider: String,
+  warrantyStatus: {
+    type: String, // Active, Inactive
+    default: 'inactive'
+  },
+
+  // Attachments & Reports
+  attachments: [{
+    name: String,
+    url: String,
+    type: String, // photo, report, document
+    uploadedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
 
   // Tracking
   createdBy: {

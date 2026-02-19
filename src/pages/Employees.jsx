@@ -7,8 +7,10 @@ const Employees = () => {
   const [employees, setEmployees] = useState([]);
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [filters, setFilters] = useState({ department: '', search: '' });
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     employeeId: '',
@@ -51,12 +53,19 @@ const Employees = () => {
     }
   };
 
-  const handleCreateEmployee = async (e) => {
+  const handleSubmitRaw = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
     try {
-      const response = await axios.post('/api/employees', formData);
-      setEmployees([response.data, ...employees]);
+      if (editingId) {
+        const response = await axios.put(`/api/employees/${editingId}`, formData);
+        setEmployees(employees.map(emp => emp._id === editingId ? response.data : emp));
+      } else {
+        const response = await axios.post('/api/employees', formData);
+        setEmployees([response.data, ...employees]);
+      }
       setShowForm(false);
+      setEditingId(null);
       setFormData({
         employeeId: '',
         firstName: '',
@@ -68,7 +77,36 @@ const Employees = () => {
         location: ''
       });
     } catch (err) {
-      console.error('Failed to create employee:', err);
+      console.error('Failed to save employee:', err);
+      alert(err.response?.data?.message || 'Failed to save employee');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleEdit = (employee) => {
+    setFormData({
+      employeeId: employee.employeeId || '',
+      firstName: employee.firstName || '',
+      lastName: employee.lastName || '',
+      email: employee.email || '',
+      department: employee.department || '',
+      designation: employee.designation || '',
+      employmentType: employee.employmentType || 'full_time',
+      location: employee.location?._id || employee.location || ''
+    });
+    setEditingId(employee._id);
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this employee?')) return;
+    try {
+      await axios.delete(`/api/employees/${id}`);
+      setEmployees(employees.filter(e => e._id !== id));
+    } catch (err) {
+      console.error(err);
+      alert('Failed to delete employee');
     }
   };
 
@@ -133,8 +171,8 @@ const Employees = () => {
       {/* Create Form */}
       {showForm && (
         <div className="bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800 p-6 animate-fade-in">
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Create New Employee</h2>
-          <form onSubmit={handleCreateEmployee} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">{editingId ? 'Edit Employee' : 'Create New Employee'}</h2>
+          <form onSubmit={handleSubmitRaw} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <input
               type="text"
               placeholder="Employee ID"
@@ -204,13 +242,14 @@ const Employees = () => {
             <div className="md:col-span-2 flex gap-2">
               <button
                 type="submit"
-                className="flex-1 py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                disabled={submitting}
+                className="flex-1 py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
               >
-                Create Employee
+                {editingId ? 'Update Employee' : 'Create Employee'}
               </button>
               <button
                 type="button"
-                onClick={() => setShowForm(false)}
+                onClick={() => { setShowForm(false); setEditingId(null); }}
                 className="flex-1 py-2 px-4 bg-slate-200 text-slate-800 rounded-lg hover:bg-slate-300 transition"
               >
                 Cancel
@@ -231,6 +270,7 @@ const Employees = () => {
                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Department</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Designation</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Type</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -246,6 +286,10 @@ const Employees = () => {
                     <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300">
                       {employee.employmentType.replace('_', ' ').toUpperCase()}
                     </span>
+                  </td>
+                  <td className="px-6 py-4 flex gap-2">
+                    <button onClick={() => handleEdit(employee)} className="text-blue-600 hover:text-blue-800 text-sm font-medium">Edit</button>
+                    <button onClick={() => handleDelete(employee._id)} className="text-red-600 hover:text-red-800 text-sm font-medium">Delete</button>
                   </td>
                 </tr>
               ))}
