@@ -106,6 +106,13 @@ const assetSchema = new mongoose.Schema({
     default: 'inactive'
   },
 
+  // Service Request
+  serviceType: { type: String, enum: ['OEM', 'Local'] },
+  serviceStatus: { type: String, enum: ['Pending', 'Approved', ''] },
+  damageReason: String,
+  damagedItem: String,
+  serviceResolution: String,
+
   // Attachments & Reports
   attachments: [{
     name: String,

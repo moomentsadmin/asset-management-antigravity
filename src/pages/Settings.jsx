@@ -184,6 +184,7 @@ const Settings = ({ settings, onSettingsUpdate }) => {
                     value={formData.gmailEmail || ''}
                     onChange={handleChange}
                     placeholder="example@gmail.com"
+                    autoComplete="off"
                     className="w-full px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition"
                   />
                 </div>
@@ -195,6 +196,7 @@ const Settings = ({ settings, onSettingsUpdate }) => {
                     value={formData.gmailPassword || ''}
                     onChange={handleChange}
                     placeholder="xxxx xxxx xxxx xxxx"
+                    autoComplete="new-password"
                     className="w-full px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition"
                   />
                   <p className="text-xs text-slate-500 mt-1">Use an App Password, not your login password.</p>
@@ -210,6 +212,7 @@ const Settings = ({ settings, onSettingsUpdate }) => {
                   name="sendgridApiKey"
                   value={formData.sendgridApiKey || ''}
                   onChange={handleChange}
+                  autoComplete="new-password"
                   className="w-full px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition"
                 />
               </div>
@@ -224,6 +227,7 @@ const Settings = ({ settings, onSettingsUpdate }) => {
                     name="office365Email"
                     value={formData.office365Email || ''}
                     onChange={handleChange}
+                    autoComplete="off"
                     className="w-full px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition"
                   />
                 </div>
@@ -234,6 +238,7 @@ const Settings = ({ settings, onSettingsUpdate }) => {
                     name="office365Password"
                     value={formData.office365Password || ''}
                     onChange={handleChange}
+                    autoComplete="new-password"
                     className="w-full px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition"
                   />
                 </div>

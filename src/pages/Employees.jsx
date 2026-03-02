@@ -189,7 +189,22 @@ const Employees = () => {
               Import CSV
             </button>
             <button
-              onClick={() => setShowForm(!showForm)}
+              onClick={() => {
+                if (!showForm) {
+                  setFormData({
+                    employeeId: '',
+                    firstName: '',
+                    lastName: '',
+                    email: '',
+                    department: '',
+                    designation: '',
+                    employmentType: 'full_time',
+                    location: ''
+                  });
+                  setEditingId(null);
+                }
+                setShowForm(!showForm);
+              }}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-sm transition-colors"
             >
               + New Employee

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 import ImportModal from '../components/ImportModal';
 
@@ -9,7 +9,15 @@ const Assets = () => {
   const [locations, setLocations] = useState([]);
   const [assetTypes, setAssetTypes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({ status: '', type: '', search: '' });
+  const locationUrl = useLocation();
+  const [filters, setFilters] = useState(() => {
+    const params = new URLSearchParams(locationUrl.search);
+    return {
+      status: params.get('status') || '',
+      type: params.get('type') || '',
+      search: params.get('search') || ''
+    };
+  });
   const [showForm, setShowForm] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -44,10 +52,21 @@ const Assets = () => {
     invoiceNo: '',
     warrantyExpiry: '',
     warrantyProvider: '',
+    warrantyStatus: 'inactive',
     photoUrl: ''
   });
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+  useEffect(() => {
+    const params = new URLSearchParams(locationUrl.search);
+    setFilters(prev => ({
+      ...prev,
+      status: params.get('status') || '',
+      type: params.get('type') || '',
+      search: params.get('search') || prev.search
+    }));
+  }, [locationUrl.search]);
 
   useEffect(() => {
     fetchAssets();
@@ -129,10 +148,11 @@ const Assets = () => {
         invoiceNo: '',
         warrantyExpiry: '',
         warrantyProvider: '',
+        warrantyStatus: 'inactive',
         photoUrl: ''
       });
       // Refresh assets to show newly created one
-       fetchAssets();
+      fetchAssets();
     } catch (err) {
       console.error('Failed to create asset:', err);
       alert('Failed to create asset. Please check required fields.');
@@ -152,27 +172,29 @@ const Assets = () => {
 
   const handleExportCSV = () => {
     const headers = [
-      'Asset Tag', 'Asset Model', 'Type', 'Status', 'Location', 'Serial Number', 
-      'Purchase Price', 'Manufacturer', 'Vendor', 'Supplier', 'Employee ID', 
-      'Assigned Date', 'Warranty Expiry'
+      'Asset Tag', 'Asset Model', 'Type', 'Status', 'Location', 'Serial Number',
+      'Processor', 'RAM', 'Storage',
+      'Purchase Price', 'Manufacturer', 'Vendor', 'Supplier Name', 'Invoice Date', 'Invoice No',
+      'Employee ID', 'Assigned To', 'Company/Client', 'Mobile Number', 'Internal Mail ID', 'Client Mail ID',
+      'Priority', 'Express Service Code', 'Adapter S/N',
+      'Assigned Date', 'License', 'Acknowledgement Form', 'Old Loaner',
+      'Warranty Expiry', 'Warranty Provider'
     ];
-    
+
     const csvContent = [
       headers.join(','),
       ...assets.map(asset => [
-        asset.assetTag,
-        asset.name,
-        asset.type,
-        asset.status,
-        asset.location?.name || '',
-        asset.serialNumber,
-        asset.purchasePrice,
-        asset.manufacturer,
-        asset.vendor,
-        asset.supplierName,
-        asset.employeeId,
+        asset.assetTag, asset.name, asset.type, asset.status, asset.location?.name || '', asset.serialNumber,
+        asset.processor, asset.ram, asset.storage,
+        asset.purchasePrice, asset.manufacturer, asset.vendor, asset.supplierName,
+        asset.invoiceDate ? new Date(asset.invoiceDate).toLocaleDateString() : '', asset.invoiceNo,
+        asset.assignedTo?.employeeId || asset.employeeId || '',
+        asset.assignedTo ? `${asset.assignedTo.firstName || ''} ${asset.assignedTo.lastName || ''}`.trim() : '',
+        asset.companyClient, asset.mobileNumber, asset.internalMailId, asset.clientMailId,
+        asset.priority, asset.expressServiceCode, asset.adapterSerialNumber,
         asset.laptopAssignedDate ? new Date(asset.laptopAssignedDate).toLocaleDateString() : '',
-        asset.warrantyExpiry ? new Date(asset.warrantyExpiry).toLocaleDateString() : ''
+        asset.license, asset.acknowledgementForm, asset.oldLoaner,
+        asset.warrantyExpiry ? new Date(asset.warrantyExpiry).toLocaleDateString() : '', asset.warrantyProvider
       ].map(field => `"${(field || '').toString().replace(/"/g, '""')}"`).join(','))
     ].join('\n');
 
@@ -283,7 +305,7 @@ const Assets = () => {
           <option value="">All Statuses</option>
           <option value="available">Available</option>
           <option value="assigned">Assigned</option>
-          <option value="in_maintenance">In Maintenance</option>
+          <option value="in_maintenance">Service Request</option>
           <option value="retired">Retired</option>
           <option value="lost">Lost</option>
         </select>
@@ -538,6 +560,14 @@ const Assets = () => {
                 className="px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg dark:bg-slate-800 dark:text-white"
               />
             </div>
+            <select
+              value={formData.warrantyStatus || 'inactive'}
+              onChange={(e) => setFormData({ ...formData, warrantyStatus: e.target.value })}
+              className="px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg dark:bg-slate-800 dark:text-white"
+            >
+              <option value="active">Warranty Active</option>
+              <option value="inactive">Warranty Inactive</option>
+            </select>
             <input
               type="text"
               placeholder="Main Photo URL"
@@ -592,7 +622,7 @@ const Assets = () => {
                         asset.status === 'in_maintenance' ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400' :
                           'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-400'
                       }`}>
-                      {asset.status?.replace('_', ' ').toUpperCase()}
+                      {asset.status === 'in_maintenance' ? 'SERVICE REQUEST' : asset.status?.replace('_', ' ').toUpperCase()}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-sm">

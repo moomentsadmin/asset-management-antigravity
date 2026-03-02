@@ -16,7 +16,7 @@ router.get('/', authenticateToken, async (req, res) => {
     let filter = {};
 
     if (status) filter.status = status;
-    if (type) filter.type = type;
+    if (type) filter.type = { $regex: new RegExp(`^${type}$`, 'i') };
     if (location) filter.location = location;
     if (assignedTo) filter.assignedTo = assignedTo;
     if (search) {

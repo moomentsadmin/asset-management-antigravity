@@ -110,9 +110,9 @@
   --color-bg-primary: #ffffff;
   --color-bg-secondary: #f8fafc;
   --color-bg-tertiary: #f1f5f9;
-  --color-text-primary: #0f172a;
-  --color-text-secondary: #475569;
-  --color-text-tertiary: #64748b;
+  --color-text-primary: #020617; /* Slate 950 - better contrast */
+  --color-text-secondary: #1e293b; /* Slate 800 - better contrast */
+  --color-text-tertiary: #334155; /* Slate 700 - better contrast */
 }
 
 /* ============================================
@@ -402,6 +402,15 @@ td {
   padding: 1rem 1.5rem;
   text-align: left;
   border-bottom: 1px solid var(--color-neutral-200);
+  white-space: nowrap; /* Case 1: Handle Line Breakage */
+}
+
+/* Base override for Tailwind text colors to ensure visibility */
+.text-slate-400, .text-slate-500, .text-slate-600 {
+  color: var(--color-text-secondary) !important;
+}
+.dark .text-slate-400, .dark .text-slate-500, .dark .text-slate-600 {
+  color: rgba(255, 255, 255, 0.85) !important; /* Ensure transparency/visibility as requested */
 }
 
 body.dark th,

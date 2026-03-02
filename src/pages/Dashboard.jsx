@@ -144,7 +144,7 @@ const Dashboard = ({ settings }) => {
         <StatCard label="Total Assets" value={stats?.totalAssets || 0} icon={<Icons.Asset />} to="/assets" />
         <StatCard label="Assigned" value={stats?.assignedAssets || 0} icon={<Icons.Upload />} color="blue" to="/assets?status=assigned" />
         <StatCard label="Available" value={stats?.availableAssets || 0} icon={<Icons.Check />} color="emerald" to="/assets?status=available" />
-        <StatCard label="Maintenance" value={stats?.maintenanceAssets || 0} icon={<Icons.Wrench />} color="amber" to="/assets?status=in_maintenance" />
+        <StatCard label="Service Request" value={stats?.maintenanceAssets || 0} icon={<Icons.Wrench />} color="amber" to="/assets?status=in_maintenance" />
       </div>
 
       {/* Secondary KPI Grid */}

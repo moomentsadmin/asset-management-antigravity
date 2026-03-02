@@ -24,7 +24,7 @@ router.get('/stats', authenticateToken, async (req, res) => {
     const totalUsers = await User.countDocuments();
 
     const assetsByType = await Asset.aggregate([
-      { $group: { _id: '$type', count: { $sum: 1 } } }
+      { $group: { _id: { $toLower: '$type' }, count: { $sum: 1 } } }
     ]);
 
     const assetsByStatus = [

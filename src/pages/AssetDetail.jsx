@@ -98,7 +98,7 @@ const AssetDetail = () => {
   };
 
   const handleMoveToMaintenance = async () => {
-    if (!window.confirm('Are you sure you want to move this asset to maintenance?')) return;
+    if (!window.confirm('Are you sure you want to move this asset to Service Request?')) return;
     try {
       const response = await axios.put(`/api/assets/${id}`, { status: 'in_maintenance' });
       setAsset(response.data);
@@ -139,7 +139,7 @@ const AssetDetail = () => {
                 onClick={handleMoveToMaintenance}
                 className="px-6 py-2 bg-amber-500 text-white rounded-xl font-bold hover:bg-amber-600 transition-all shadow-sm"
               >
-                Move to Maintenance
+                Move to Service Request
               </button>
             )}
             <button
@@ -194,7 +194,7 @@ const AssetDetail = () => {
                       <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="available">Available</option>
                         <option value="assigned">Assigned</option>
-                        <option value="in_maintenance">In Maintenance</option>
+                        <option value="in_maintenance">Service Request</option>
                         <option value="retired">Retired</option>
                         <option value="lost">Lost</option>
                       </select>
@@ -324,9 +324,53 @@ const AssetDetail = () => {
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-slate-500 mb-1">Warranty Provider</label>
-                      <input type="text" value={formData.warrantyProvider} onChange={(e) => setFormData({ ...formData, warrantyProvider: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                      <input type="text" value={formData.warrantyProvider || ''} onChange={(e) => setFormData({ ...formData, warrantyProvider: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Warranty Status</label>
+                      <select value={formData.warrantyStatus || 'inactive'} onChange={(e) => setFormData({ ...formData, warrantyStatus: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                      </select>
                     </div>
                   </div>
+
+                  {/* Service Request Tracking Form */}
+                  {(formData.status === 'in_maintenance' || formData.damageReason) && (
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800 pb-2">Service Request Details</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-500 mb-1">Repair Type</label>
+                          <select value={formData.serviceType || ''} onChange={(e) => setFormData({ ...formData, serviceType: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Select</option>
+                            <option value="OEM">In-Warranty (OEM)</option>
+                            <option value="Local">Out-of-Warranty (Local Vendor)</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-500 mb-1">Service Status</label>
+                          <select value={formData.serviceStatus || ''} onChange={(e) => setFormData({ ...formData, serviceStatus: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Select</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Approved">Approved</option>
+                          </select>
+                        </div>
+                        <div className="md:col-span-2">
+                          <label className="block text-xs font-bold text-slate-500 mb-1">Damaged Item (e.g., Display, Charger)</label>
+                          <input type="text" value={formData.damagedItem || ''} onChange={(e) => setFormData({ ...formData, damagedItem: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                        </div>
+                        <div className="md:col-span-2">
+                          <label className="block text-xs font-bold text-slate-500 mb-1">Damage Reason</label>
+                          <input type="text" value={formData.damageReason || ''} onChange={(e) => setFormData({ ...formData, damageReason: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                        </div>
+                        <div className="md:col-span-2">
+                          <label className="block text-xs font-bold text-slate-500 mb-1">Resolution (How was it fixed?)</label>
+                          <input type="text" value={formData.serviceResolution || ''} onChange={(e) => setFormData({ ...formData, serviceResolution: e.target.value })} className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Attachments */}
                   <div className="space-y-4">
@@ -398,7 +442,7 @@ const AssetDetail = () => {
                     <div className="grid grid-cols-2 gap-4">
                       <DetailItem label="Provider" value={asset.warrantyProvider} />
                       <DetailItem label="Expiry" value={asset.warrantyExpiry ? new Date(asset.warrantyExpiry).toLocaleDateString() : '-'} />
-                      <DetailItem label="Status" value={asset.warrantyExpiry && new Date(asset.warrantyExpiry) > new Date() ? 'Active' : 'Expired'} color={asset.warrantyExpiry && new Date(asset.warrantyExpiry) > new Date() ? 'text-emerald-600' : 'text-red-600'} />
+                      <DetailItem label="Status" value={asset.warrantyStatus === 'active' ? 'Active' : 'Inactive'} color={asset.warrantyStatus === 'active' ? 'text-emerald-600' : 'text-slate-500'} />
                     </div>
                   </div>
                   <div className="space-y-4">
@@ -426,13 +470,30 @@ const AssetDetail = () => {
                     </div>
                   </div>
                 )}
+                {/* Service Request View Section */}
+                {(asset.status === 'in_maintenance' || asset.damageReason) && (
+                  <div className="pt-10 border-t border-slate-100 dark:border-slate-800">
+                    <div className="flex justify-between items-center mb-6">
+                      <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Service Request Details</h4>
+                      {asset.serviceStatus && (
+                        <span className={`px-3 py-1 text-xs font-bold bg-amber-100 text-amber-800 rounded-full dark:bg-amber-900/30 dark:text-amber-400`}>{asset.serviceStatus}</span>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                      <DetailItem label="Repair Type" value={asset.serviceType === 'OEM' ? 'In-Warranty (OEM)' : asset.serviceType === 'Local' ? 'Out-of-Warranty (Local Vendor)' : '-'} color="text-amber-600" />
+                      <DetailItem label="Damaged Item" value={asset.damagedItem} />
+                      <DetailItem label="Damage Reason" value={asset.damageReason} fullWidth />
+                      <DetailItem label="Resolution" value={asset.serviceResolution} fullWidth />
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
 
           {/* Activity & Notes */}
           <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 p-8">
-            <h2 className="text-xl font-black text-slate-900 dark:text-white mb-8">Maintenance Feed</h2>
+            <h2 className="text-xl font-black text-slate-900 dark:text-white mb-8">Service Request Log</h2>
             <div className="space-y-8">
               <div className="flex gap-4">
                 <input
