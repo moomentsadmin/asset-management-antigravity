@@ -139,22 +139,44 @@ router.post('/bulk-upload/csv', authenticateToken, authorizeRole('admin', 'manag
 
     const uploadedEmployees = [];
     for (const item of data) {
+      const getVal = (keys) => {
+        for (const k of keys) {
+          if (item[k] !== undefined) return item[k];
+        }
+        return undefined;
+      };
+
+      const employeeId = getVal(['Employee ID', 'employeeId', 'Emp ID', 'EMP ID']);
+      const firstName = getVal(['First Name', 'firstName']);
+      const lastName = getVal(['Last Name', 'lastName']);
+      const email = getVal(['Email', 'email']);
+      const department = getVal(['Department', 'department']);
+      const designation = getVal(['Designation', 'designation']);
+      const employmentType = getVal(['Type', 'employmentType', 'Employment Type']);
+      const locationName = getVal(['Location', 'location']);
+
+      if (!employeeId || !firstName || !email) continue; // Skip if basic required fields are missing
+
       let locationId = null;
-      if (item.location) {
-        const loc = await Location.findOne({ name: item.location });
+      if (locationName) {
+        const loc = await Location.findOne({ name: { $regex: new RegExp(`^${locationName}$`, 'i') } });
         if (loc) {
           locationId = loc._id;
         }
       }
 
+      // Check if employee exists to update or skip
+      const existing = await Employee.findOne({ employeeId });
+      if (existing) continue; // In bulk upload, skip existing or handle differently if needed. We'll skip for now.
+
       const employee = new Employee({
-        employeeId: item.employeeId,
-        firstName: item.firstName,
-        lastName: item.lastName,
-        email: item.email,
-        department: item.department,
-        designation: item.designation,
-        employmentType: item.employmentType || 'full_time',
+        employeeId: employeeId,
+        firstName: firstName,
+        lastName: lastName || '',
+        email: email,
+        department: department,
+        designation: designation,
+        employmentType: employmentType || 'full_time',
         location: locationId
       });
 

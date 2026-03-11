@@ -330,6 +330,7 @@ const Employees = () => {
           <table className="w-full">
             <thead className="bg-slate-50 dark:bg-slate-950">
               <tr className="border-b border-slate-200 dark:border-slate-800">
+                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">EMP ID</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Name</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Email</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Department</th>
@@ -341,6 +342,7 @@ const Employees = () => {
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {employees.map(employee => (
                 <tr key={employee._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                  <td className="px-6 py-4 text-slate-900 dark:text-white font-medium">{employee.employeeId}</td>
                   <td className="px-6 py-4 text-slate-900 dark:text-white font-medium">
                     {employee.firstName} {employee.lastName}
                   </td>

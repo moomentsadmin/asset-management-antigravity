@@ -372,12 +372,15 @@ router.post('/import/csv', authenticateToken, authorizeRole('admin', 'manager'),
         'Asset Tag', 'assetTag', 'tag', 'Name', 'name', 'Asset Name', 'Type', 'type', 'Asset Type',
         'Serial Number', 'serialNumber', 'sn', 'S/N', 'Status', 'status', 'Purchase Price', 'purchasePrice', 'Price',
         'Purchase Date', 'purchaseDate', 'Vendor', 'vendor', 'Supplier', 'Invoice Number', 'invoiceNumber', 'Invoice No',
-        'Location', 'location', 'Priority', 'priority', 'Employee ID', 'employeeId', 'Emp ID', 'Company/Client', 'companyClient',
-        'Client', 'Mobile Number', 'mobileNumber', 'Mobile', 'Internal Mail ID', 'internalMailId', 'Internal Mail',
-        'Client Mail ID', 'clientMailId', 'Client Mail', 'Express Service Code', 'expressServiceCode', 'Adapter S/N',
-        'adapterSerialNumber', 'Adapter SN', 'Processor', 'processor', 'RAM', 'ram', 'Storage', 'storage',
-        'Laptop Assigned Date', 'laptopAssignedDate', 'License', 'license', 'Acknowledgement Form', 'acknowledgementForm',
-        'Old Loaner', 'oldLoaner', 'Supplier Name', 'supplierName', 'Invoice Date', 'invoiceDate', 'Invoice No', 'invoiceNo'
+        'Location', 'location', 'Priority', 'priority', 'Employee ID', 'employeeId', 'Emp ID',
+        'Assigned To', 'assignedTo', 'Assigned Employee Email', 'assignedEmployeeEmail', 'Assigned Employee Department',
+        'assignedEmployeeDepartment', 'Assigned Employee Designation', 'assignedEmployeeDesignation',
+        'Company/Client', 'companyClient', 'Client', 'Mobile Number', 'mobileNumber', 'Mobile',
+        'Internal Mail ID', 'internalMailId', 'Internal Mail', 'Client Mail ID', 'clientMailId', 'Client Mail',
+        'Express Service Code', 'expressServiceCode', 'Adapter S/N', 'adapterSerialNumber', 'Adapter SN',
+        'Processor', 'processor', 'RAM', 'ram', 'Storage', 'storage', 'Laptop Assigned Date', 'laptopAssignedDate',
+        'License', 'license', 'Acknowledgement Form', 'acknowledgementForm', 'Old Loaner', 'oldLoaner',
+        'Supplier Name', 'supplierName', 'Invoice Date', 'invoiceDate', 'Invoice No', 'invoiceNo'
       ].map(k => k.toLowerCase().replace(/[\s\/\-_]+/g, ''));
 
       for (const key in item) {

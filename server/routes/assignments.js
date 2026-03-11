@@ -155,4 +155,38 @@ router.get('/asset/:assetId/history', authenticateToken, async (req, res) => {
   }
 });
 
+// Delete assignment
+router.delete('/:id', authenticateToken, authorizeRole('admin', 'manager'), async (req, res) => {
+  try {
+    const assignment = await Assignment.findById(req.params.id);
+    if (!assignment) {
+      return res.status(404).json({ message: 'Assignment not found' });
+    }
+
+    if (assignment.status === 'active') {
+      const asset = await Asset.findById(assignment.asset);
+      if (asset) {
+        asset.status = 'available';
+        asset.assignedTo = null;
+        await asset.save();
+      }
+    }
+
+    await Assignment.findByIdAndDelete(req.params.id);
+
+    await AuditLog.create({
+      user: req.user.userId,
+      action: 'assignment_deleted',
+      entityType: 'assignment',
+      entityId: assignment._id,
+      entityName: `Assignment ${assignment._id} deleted`
+    });
+
+    res.json({ message: 'Assignment deleted' });
+  } catch (error) {
+    console.error('Delete assignment error:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
 export default router;

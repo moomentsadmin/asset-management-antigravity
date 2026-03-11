@@ -7,11 +7,13 @@ const Users = () => {
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+    const [editingId, setEditingId] = useState(null);
     const [formData, setFormData] = useState({
         username: '',
         email: '',
         password: '',
-        role: 'employee'
+        role: 'employee',
+        isActive: true
     });
     const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
@@ -30,21 +32,44 @@ const Users = () => {
         }
     };
 
-    const handleCreateUser = async (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('/api/users', formData);
-            setUsers([...users, response.data]);
+            if (editingId) {
+                const submitData = { ...formData };
+                if (!submitData.password) {
+                    delete submitData.password;
+                }
+                const response = await axios.put(`/api/users/${editingId}`, submitData);
+                setUsers(users.map(u => u._id === editingId ? response.data : u));
+            } else {
+                const response = await axios.post('/api/users', formData);
+                setUsers([...users, response.data]);
+            }
             setShowForm(false);
+            setEditingId(null);
             setFormData({
                 username: '',
                 email: '',
                 password: '',
-                role: 'employee'
+                role: 'employee',
+                isActive: true
             });
         } catch (err) {
-            alert(`Failed to create user: ${err.response?.data?.message || err.message}`);
+            alert(`Failed to save user: ${err.response?.data?.message || err.message}`);
         }
+    };
+
+    const handleEdit = (user) => {
+        setFormData({
+            username: user.username,
+            email: user.email,
+            password: '', // Leave blank, only fill if changing
+            role: user.role,
+            isActive: user.isActive !== undefined ? user.isActive : true
+        });
+        setEditingId(user._id);
+        setShowForm(true);
     };
 
     const templateFields = {
@@ -78,7 +103,13 @@ const Users = () => {
                         Import CSV
                     </button>
                     <button
-                        onClick={() => setShowForm(!showForm)}
+                        onClick={() => {
+                            if (!showForm) {
+                                setEditingId(null);
+                                setFormData({ username: '', email: '', password: '', role: 'employee', isActive: true });
+                            }
+                            setShowForm(!showForm);
+                        }}
                         className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-sm transition-colors"
                     >
                         + New User
@@ -86,11 +117,11 @@ const Users = () => {
                 </div>
             </div>
 
-            {/* Create Form */}
+            {/* Form */}
             {showForm && (
                 <div className="bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800 p-6 animate-fade-in">
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Create New User</h2>
-                    <form onSubmit={handleCreateUser} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">{editingId ? 'Edit User' : 'Create New User'}</h2>
+                    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <input
                             type="text"
                             placeholder="Username"
@@ -109,11 +140,11 @@ const Users = () => {
                         />
                         <input
                             type="password"
-                            placeholder="Password"
+                            placeholder={editingId ? "New Password (leave blank to keep current)" : "Password"}
                             value={formData.password}
                             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                             className="px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg dark:bg-slate-800 dark:text-white"
-                            required
+                            required={!editingId}
                         />
                         <select
                             value={formData.role}
@@ -124,16 +155,26 @@ const Users = () => {
                             <option value="manager">Manager</option>
                             <option value="admin">Admin</option>
                         </select>
+                        {editingId && (
+                            <select
+                                value={formData.isActive ? 'active' : 'inactive'}
+                                onChange={(e) => setFormData({ ...formData, isActive: e.target.value === 'active' })}
+                                className="px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg dark:bg-slate-800 dark:text-white md:col-span-2"
+                            >
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        )}
                         <div className="md:col-span-2 flex gap-2">
                             <button
                                 type="submit"
                                 className="flex-1 py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
                             >
-                                Create User
+                                {editingId ? 'Update User' : 'Create User'}
                             </button>
                             <button
                                 type="button"
-                                onClick={() => setShowForm(false)}
+                                onClick={() => { setShowForm(false); setEditingId(null); }}
                                 className="flex-1 py-2 px-4 bg-slate-200 text-slate-800 rounded-lg hover:bg-slate-300 transition"
                             >
                                 Cancel
@@ -153,6 +194,7 @@ const Users = () => {
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Email</th>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Role</th>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -174,6 +216,14 @@ const Users = () => {
                                             }`}>
                                             {user.isActive ? 'Active' : 'Inactive'}
                                         </span>
+                                    </td>
+                                    <td className="px-6 py-4 flex gap-2">
+                                        <button
+                                            onClick={() => handleEdit(user)}
+                                            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                                        >
+                                            Edit
+                                        </button>
                                     </td>
                                 </tr>
                             ))}

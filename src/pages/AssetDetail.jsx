@@ -13,6 +13,7 @@ const AssetDetail = () => {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
+  const [activeTab, setActiveTab] = useState('Overview');
   const [formData, setFormData] = useState({});
   const [newNote, setNewNote] = useState('');
   const [postingNote, setPostingNote] = useState(false);
@@ -108,6 +109,16 @@ const AssetDetail = () => {
     }
   };
 
+  const handleServiceStatus = async (status) => {
+    try {
+      const response = await axios.put(`/api/assets/${id}`, { serviceStatus: status });
+      setAsset(response.data);
+      setFormData(response.data);
+    } catch (err) {
+      console.error('Failed to update service status:', err);
+    }
+  };
+
   if (loading) {
     return <div className="p-6 text-center">Loading asset details...</div>;
   }
@@ -119,7 +130,7 @@ const AssetDetail = () => {
   const DetailItem = ({ label, value, color, fullWidth }) => (
     <div className={`space-y-1 overflow-hidden ${fullWidth ? 'col-span-2' : ''}`}>
       <p className="text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider font-bold">{label}</p>
-      <p className={`text-base font-semibold break-words ${color || 'text-slate-900 dark:text-white'}`}>{value || '-'}</p>
+      <p className={`text-base font-semibold break-words whitespace-pre-wrap ${color || 'text-slate-900 dark:text-white'}`}>{value || '-'}</p>
     </div>
   );
 
@@ -390,100 +401,129 @@ const AssetDetail = () => {
               </form>
             ) : (
               <div className="space-y-12">
-                {/* Visual Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-10">
-                  <DetailItem label="Asset Tag" value={asset.assetTag} />
-                  <DetailItem label="Type" value={asset.type} />
-                  <DetailItem label="Priority" value={asset.priority} color="text-blue-600 dark:text-blue-400" />
-                  <DetailItem label="Location" value={asset.location?.name} />
-
-                  <DetailItem label="Emp ID" value={asset.employeeId} />
-                  <DetailItem label="Company" value={asset.companyClient} />
-                  <DetailItem label="Assigned To" value={asset.assignedTo ? `${asset.assignedTo.firstName} ${asset.assignedTo.lastName}` : 'Unassigned'} color={asset.assignedTo ? 'text-emerald-600' : 'text-slate-400'} />
-                  <DetailItem label="Mobile" value={asset.mobileNumber} />
-
-                  <DetailItem label="Processor" value={asset.processor} />
-                  <DetailItem label="RAM" value={asset.ram} />
-                  <DetailItem label="Storage" value={asset.storage} />
-                  <DetailItem label="Adapter S/N" value={asset.adapterSerialNumber} />
-
-                  <DetailItem label="Invoice No" value={asset.invoiceNo || asset.invoiceNumber} />
-                  <DetailItem label="Supplier" value={asset.supplierName || asset.vendor} />
-                  <DetailItem label="Value" value={formatCurrency(asset.currentValue || asset.purchasePrice, asset.location?.currency)} color="text-blue-600 dark:text-blue-400 font-black" />
-                  <DetailItem label="Purchase Date" value={asset.purchaseDate ? new Date(asset.purchaseDate).toLocaleDateString() : '-'} />
+                <div className="flex gap-8 border-b border-slate-200 dark:border-slate-800">
+                  {['Overview', 'Warranty', 'Service Request'].map(tab => (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveTab(tab)}
+                      className={`pb-4 text-xs font-black uppercase tracking-widest border-b-2 transition-colors ${activeTab === tab ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400' : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'}`}
+                    >
+                      {tab}
+                    </button>
+                  ))}
                 </div>
 
-                {/* Additional Details Section */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 pt-10 border-t border-slate-100 dark:border-slate-800">
-                  <div className="space-y-4">
-                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Extended Specs</h4>
-                    <div className="grid grid-cols-2 gap-4">
-                      <DetailItem label="Express Service" value={asset.expressServiceCode} />
-                      <DetailItem label="Assigned Date" value={asset.laptopAssignedDate ? new Date(asset.laptopAssignedDate).toLocaleDateString() : '-'} />
-                      <DetailItem label="License" value={asset.license} />
-                      <DetailItem label="Old Loaner" value={asset.oldLoaner} />
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Contact & Forms</h4>
-                    <div className="grid grid-cols-2 gap-4">
-                      {/* Emails can be long, so taking full width if needed, or ensuring break-all via DetailItem */}
-                      <DetailItem label="Int. Mail" value={asset.internalMailId} fullWidth />
-                      <DetailItem label="Ext. Mail" value={asset.clientMailId} fullWidth />
-                      <DetailItem label="Ack. Form" value={asset.acknowledgementForm} />
-                    </div>
-                  </div>
-                </div>
+                {activeTab === 'Overview' && (
+                  <div className="space-y-12 animate-fade-in">
+                    {/* Visual Grid */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-10">
+                      <DetailItem label="Asset Tag" value={asset.assetTag} />
+                      <DetailItem label="Type" value={asset.type} />
+                      <DetailItem label="Priority" value={asset.priority} color="text-blue-600 dark:text-blue-400" />
+                      <DetailItem label="Location" value={asset.location?.name} />
 
-                {/* Warranty & Attachments */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 pt-10 border-t border-slate-100 dark:border-slate-800">
-                  <div className="space-y-4">
-                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Warranty</h4>
-                    <div className="grid grid-cols-2 gap-4">
-                      <DetailItem label="Provider" value={asset.warrantyProvider} />
-                      <DetailItem label="Expiry" value={asset.warrantyExpiry ? new Date(asset.warrantyExpiry).toLocaleDateString() : '-'} />
-                      <DetailItem label="Status" value={asset.warrantyStatus === 'active' ? 'Active' : 'Inactive'} color={asset.warrantyStatus === 'active' ? 'text-emerald-600' : 'text-slate-500'} />
+                      <DetailItem label="Emp ID" value={asset.employeeId} />
+                      <DetailItem label="Company" value={asset.companyClient} />
+                      <DetailItem label="Assigned To" value={asset.assignedTo ? `${asset.assignedTo.firstName} ${asset.assignedTo.lastName}` : 'Unassigned'} color={asset.assignedTo ? 'text-emerald-600' : 'text-slate-400'} />
+                      <DetailItem label="Mobile" value={asset.mobileNumber} />
+
+                      <DetailItem label="Processor" value={asset.processor} />
+                      <DetailItem label="RAM" value={asset.ram} />
+                      <DetailItem label="Storage" value={asset.storage} />
+                      <DetailItem label="Adapter S/N" value={asset.adapterSerialNumber} />
+
+                      <DetailItem label="Invoice No" value={asset.invoiceNo || asset.invoiceNumber} />
+                      <DetailItem label="Supplier" value={asset.supplierName || asset.vendor} />
+                      <DetailItem label="Value" value={formatCurrency(asset.currentValue || asset.purchasePrice, asset.location?.currency)} color="text-blue-600 dark:text-blue-400 font-black" />
+                      <DetailItem label="Purchase Date" value={asset.purchaseDate ? new Date(asset.purchaseDate).toLocaleDateString() : '-'} />
                     </div>
-                  </div>
-                  <div className="space-y-4">
-                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Attachments</h4>
-                    <div className="grid grid-cols-1 gap-4">
-                      {asset.photoUrl && (
-                        <div>
-                          <p className="text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider font-bold mb-2">Main Photo</p>
-                          <img src={asset.photoUrl} alt="Asset" className="w-32 h-32 object-cover rounded-lg border border-slate-200 dark:border-slate-700" />
+
+                    {/* Additional Details Section */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 pt-10 border-t border-slate-100 dark:border-slate-800">
+                      <div className="space-y-4">
+                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Extended Specs</h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          <DetailItem label="Express Service" value={asset.expressServiceCode} />
+                          <DetailItem label="Assigned Date" value={asset.laptopAssignedDate ? new Date(asset.laptopAssignedDate).toLocaleDateString() : '-'} />
+                          <DetailItem label="License" value={asset.license} />
+                          <DetailItem label="Old Loaner" value={asset.oldLoaner} />
                         </div>
-                      )}
-                      {!asset.photoUrl && <p className="text-sm text-slate-400 italic">No attachments</p>}
+                      </div>
+                      <div className="space-y-4">
+                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Contact & Forms</h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          <DetailItem label="Int. Mail" value={asset.internalMailId} fullWidth />
+                          <DetailItem label="Ext. Mail" value={asset.clientMailId} fullWidth />
+                          <DetailItem label="Ack. Form" value={asset.acknowledgementForm} />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
 
-                {/* Custom Fields Section */}
-                {asset.customFields?.length > 0 && (
-                  <div className="pt-10 border-t border-slate-100 dark:border-slate-800">
-                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Custom Metadata</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                      {asset.customFields.map((cf, idx) => (
-                        <DetailItem key={idx} label={cf.fieldName} value={cf.fieldValue} />
-                      ))}
+                    {/* Attachments */}
+                    <div className="pt-10 border-t border-slate-100 dark:border-slate-800">
+                      <div className="space-y-4">
+                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Attachments</h4>
+                        <div className="grid grid-cols-1 gap-4">
+                          {asset.photoUrl && (
+                            <div>
+                              <p className="text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider font-bold mb-2">Main Photo</p>
+                              <img src={asset.photoUrl} alt="Asset" className="w-32 h-32 object-cover rounded-lg border border-slate-200 dark:border-slate-700" />
+                            </div>
+                          )}
+                          {!asset.photoUrl && <p className="text-sm text-slate-400 italic">No attachments</p>}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Custom Fields Section */}
+                    {asset.customFields?.length > 0 && (
+                      <div className="pt-10 border-t border-slate-100 dark:border-slate-800">
+                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Custom Metadata</h4>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                          {asset.customFields.map((cf, idx) => (
+                            <DetailItem key={idx} label={cf.fieldName} value={cf.fieldValue} />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {activeTab === 'Warranty' && (
+                  <div className="space-y-12 animate-fade-in">
+                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-8 border border-slate-100 dark:border-slate-800">
+                      <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-8">Warranty Information</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <DetailItem label="Warranty Status" value={asset.warrantyStatus === 'active' ? 'Active' : 'Inactive'} color={asset.warrantyStatus === 'active' ? 'text-emerald-600' : 'text-slate-500'} />
+                        <DetailItem label="Warranty Expiry Date" value={asset.warrantyExpiry ? new Date(asset.warrantyExpiry).toLocaleDateString() : '-'} />
+                        <DetailItem label="Warranty Provider" value={asset.warrantyProvider} />
+                      </div>
                     </div>
                   </div>
                 )}
-                {/* Service Request View Section */}
-                {(asset.status === 'in_maintenance' || asset.damageReason) && (
-                  <div className="pt-10 border-t border-slate-100 dark:border-slate-800">
-                    <div className="flex justify-between items-center mb-6">
-                      <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Service Request Details</h4>
-                      {asset.serviceStatus && (
-                        <span className={`px-3 py-1 text-xs font-bold bg-amber-100 text-amber-800 rounded-full dark:bg-amber-900/30 dark:text-amber-400`}>{asset.serviceStatus}</span>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                      <DetailItem label="Repair Type" value={asset.serviceType === 'OEM' ? 'In-Warranty (OEM)' : asset.serviceType === 'Local' ? 'Out-of-Warranty (Local Vendor)' : '-'} color="text-amber-600" />
-                      <DetailItem label="Damaged Item" value={asset.damagedItem} />
-                      <DetailItem label="Damage Reason" value={asset.damageReason} fullWidth />
-                      <DetailItem label="Resolution" value={asset.serviceResolution} fullWidth />
+
+                {activeTab === 'Service Request' && (
+                  <div className="space-y-12 animate-fade-in">
+                    <div className="pt-4">
+                      {/* Approved/Pending Buttons mapped to requirements */}
+                      <div className="flex items-center gap-4 mb-8">
+                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex-1">Status</h4>
+                        {['admin', 'manager'].includes(user?.role) ? (
+                          <div className="flex gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                            <button onClick={() => handleServiceStatus('Pending')} className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${asset.serviceStatus === 'Pending' ? 'bg-white shadow-sm text-amber-600 dark:bg-slate-700' : 'text-slate-500 hover:text-slate-700'}`}>Pending</button>
+                            <button onClick={() => handleServiceStatus('Approved')} className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${asset.serviceStatus === 'Approved' ? 'bg-white shadow-sm text-emerald-600 dark:bg-slate-700' : 'text-slate-500 hover:text-slate-700'}`}>Approved</button>
+                          </div>
+                        ) : (
+                          <span className={`px-3 py-1 text-xs font-bold bg-amber-100 text-amber-800 rounded-full dark:bg-amber-900/30 dark:text-amber-400`}>{asset.serviceStatus || 'Pending'}</span>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-2 md:grid-cols-2 gap-y-10 gap-x-8">
+                        <DetailItem label="Repair Type" value={asset.serviceType === 'OEM' ? 'In-Warranty (OEM)' : asset.serviceType === 'Local' ? 'Out-of-Warranty (Local Vendor)' : '-'} color="text-amber-600" />
+                        <DetailItem label="Damaged Item" value={asset.damagedItem} />
+                        <DetailItem label="Damage Reason" value={asset.damageReason} fullWidth />
+                        <DetailItem label="Resolution" value={asset.serviceResolution} fullWidth />
+                      </div>
                     </div>
                   </div>
                 )}

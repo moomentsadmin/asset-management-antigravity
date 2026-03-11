@@ -7,6 +7,7 @@ const Assignments = () => {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ status: '' });
+  const [searchQuery, setSearchQuery] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     asset: '',
@@ -61,6 +62,17 @@ const Assignments = () => {
     }
   };
 
+  const handleDeleteAssignment = async (assignmentId) => {
+    if (!window.confirm('Are you sure you want to delete this assignment?')) return;
+    try {
+      await axios.delete(`/api/assignments/${assignmentId}`);
+      setAssignments(assignments.filter(a => a._id !== assignmentId));
+    } catch (err) {
+      console.error('Failed to delete assignment:', err);
+      alert('Failed to delete assignment');
+    }
+  };
+
   if (loading) {
     return <div className="p-6">Loading assignments...</div>;
   }
@@ -80,7 +92,7 @@ const Assignments = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 flex gap-4 flex-wrap">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 flex flex-col md:flex-row gap-4 mb-6">
         <select
           value={filters.status}
           onChange={(e) => setFilters({ status: e.target.value })}
@@ -91,6 +103,13 @@ const Assignments = () => {
           <option value="returned">Returned</option>
           <option value="lost">Lost</option>
         </select>
+        <input
+          type="text"
+          placeholder="Search by Employee Name..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white flex-1"
+        />
       </div>
 
       {/* Create Form */}
@@ -163,10 +182,18 @@ const Assignments = () => {
             </tr>
           </thead>
           <tbody>
-            {assignments.map(assignment => (
+            {assignments
+              .filter(a => {
+                if (!searchQuery) return true;
+                const searchLower = searchQuery.toLowerCase();
+                const firstName = a.employee?.firstName?.toLowerCase() || '';
+                const lastName = a.employee?.lastName?.toLowerCase() || '';
+                return firstName.includes(searchLower) || lastName.includes(searchLower);
+              })
+              .map(assignment => (
               <tr key={assignment._id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
                 <td className="px-6 py-3 text-gray-900 dark:text-gray-100 font-medium">
-                  {assignment.asset?.name}
+                  {assignment.asset?.assetTag}
                 </td>
                 <td className="px-6 py-3 text-gray-900 dark:text-gray-100">
                   {assignment.employee?.firstName} {assignment.employee?.lastName}
@@ -187,9 +214,17 @@ const Assignments = () => {
                   {assignment.status === 'active' && ['admin', 'manager'].includes(user?.role) && (
                     <button
                       onClick={() => handleReturnAsset(assignment._id)}
-                      className="text-orange-600 hover:text-orange-800 text-sm font-medium"
+                      className="text-orange-600 hover:text-orange-800 text-sm font-medium mr-3"
                     >
                       Return
+                    </button>
+                  )}
+                  {['admin', 'manager'].includes(user?.role) && (
+                    <button
+                      onClick={() => handleDeleteAssignment(assignment._id)}
+                      className="text-red-600 hover:text-red-800 text-sm font-medium"
+                    >
+                      Delete
                     </button>
                   )}
                 </td>

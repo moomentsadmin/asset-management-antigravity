@@ -175,7 +175,7 @@ const Assets = () => {
       'Asset Tag', 'Asset Model', 'Type', 'Status', 'Location', 'Serial Number',
       'Processor', 'RAM', 'Storage',
       'Purchase Price', 'Manufacturer', 'Vendor', 'Supplier Name', 'Invoice Date', 'Invoice No',
-      'Employee ID', 'Assigned To', 'Company/Client', 'Mobile Number', 'Internal Mail ID', 'Client Mail ID',
+      'Employee ID', 'Assigned To', 'Assigned Employee Email', 'Assigned Employee Department', 'Assigned Employee Designation', 'Company/Client', 'Mobile Number', 'Internal Mail ID', 'Client Mail ID',
       'Priority', 'Express Service Code', 'Adapter S/N',
       'Assigned Date', 'License', 'Acknowledgement Form', 'Old Loaner',
       'Warranty Expiry', 'Warranty Provider'
@@ -190,6 +190,9 @@ const Assets = () => {
         asset.invoiceDate ? new Date(asset.invoiceDate).toLocaleDateString() : '', asset.invoiceNo,
         asset.assignedTo?.employeeId || asset.employeeId || '',
         asset.assignedTo ? `${asset.assignedTo.firstName || ''} ${asset.assignedTo.lastName || ''}`.trim() : '',
+        asset.assignedTo?.email || '',
+        asset.assignedTo?.department || '',
+        asset.assignedTo?.designation || '',
         asset.companyClient, asset.mobileNumber, asset.internalMailId, asset.clientMailId,
         asset.priority, asset.expressServiceCode, asset.adapterSerialNumber,
         asset.laptopAssignedDate ? new Date(asset.laptopAssignedDate).toLocaleDateString() : '',
