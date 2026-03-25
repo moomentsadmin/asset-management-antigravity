@@ -87,6 +87,10 @@ router.post('/', authenticateToken, authorizeRole('admin', 'manager'), async (re
       employeeData.user = user._id;
     }
 
+    if (!employeeData.employeeId || employeeData.employeeId.trim() === '') {
+      delete employeeData.employeeId;
+    }
+
     const employee = new Employee(employeeData);
     await employee.save();
 
@@ -115,6 +119,12 @@ router.put('/:id', authenticateToken, authorizeRole('admin', 'manager'), async (
     }
 
     const oldData = employee.toObject();
+
+    if (req.body.employeeId !== undefined && (req.body.employeeId === null || req.body.employeeId.trim() === '')) {
+      delete req.body.employeeId;
+      employee.employeeId = null; 
+    }
+
     Object.assign(employee, req.body);
     await employee.save();
 
@@ -188,7 +198,7 @@ router.post('/bulk-upload/csv', authenticateToken, authorizeRole('admin', 'manag
       const employmentType = getVal(['Type', 'employmentType', 'Employment Type']);
       const locationName = getVal(['Location', 'location']);
 
-      if (!employeeId || !firstName || !email) continue; // Skip if basic required fields are missing
+      if (!firstName || !email) continue; // Skip if basic required fields are missing
 
       let locationId = null;
       if (locationName) {
@@ -202,8 +212,7 @@ router.post('/bulk-upload/csv', authenticateToken, authorizeRole('admin', 'manag
       const existing = await Employee.findOne({ employeeId });
       if (existing) continue; // In bulk upload, skip existing or handle differently if needed. We'll skip for now.
 
-      const employee = new Employee({
-        employeeId: employeeId,
+      const employeeObj = {
         firstName: firstName,
         lastName: lastName || '',
         email: email,
@@ -211,7 +220,13 @@ router.post('/bulk-upload/csv', authenticateToken, authorizeRole('admin', 'manag
         designation: designation,
         employmentType: employmentType || 'full_time',
         location: locationId
-      });
+      };
+
+      if (employeeId && String(employeeId).trim() !== '') {
+        employeeObj.employeeId = String(employeeId).trim();
+      }
+
+      const employee = new Employee(employeeObj);
 
       await employee.save();
       uploadedEmployees.push(employee);

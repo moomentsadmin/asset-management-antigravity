@@ -107,12 +107,21 @@ const assetSchema = new mongoose.Schema({
   },
 
   // Service Request
-  serviceType: { type: String, enum: ['OEM', 'Local'] },
+  serviceType: { type: String, enum: ['OEM', 'Local', ''] },
   serviceStatus: { type: String, enum: ['Pending', 'Approved', ''] },
   damageReason: String,
   damagedItem: String,
   serviceResolution: String,
   serviceCost: Number,
+  serviceRequests: [{
+    serviceType: { type: String, enum: ['OEM', 'Local', ''] },
+    serviceStatus: { type: String, enum: ['Pending', 'Approved', ''] },
+    damageReason: String,
+    damagedItem: String,
+    serviceResolution: String,
+    serviceCost: Number,
+    createdAt: { type: Date, default: Date.now }
+  }],
 
   // Attachments & Reports
   attachments: [{

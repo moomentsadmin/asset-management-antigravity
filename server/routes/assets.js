@@ -134,8 +134,29 @@ router.put('/:id', authenticateToken, authorizeRole('admin', 'manager'), async (
 
     const oldData = asset.toObject();
 
+    const srHasChanged = (
+      (req.body.serviceType !== undefined && req.body.serviceType !== asset.serviceType) ||
+      (req.body.serviceStatus !== undefined && req.body.serviceStatus !== asset.serviceStatus) ||
+      (req.body.damageReason !== undefined && req.body.damageReason !== asset.damageReason) ||
+      (req.body.damagedItem !== undefined && req.body.damagedItem !== asset.damagedItem) ||
+      (req.body.serviceResolution !== undefined && req.body.serviceResolution !== asset.serviceResolution) ||
+      (req.body.serviceCost !== undefined && Number(req.body.serviceCost) !== asset.serviceCost)
+    );
+
     Object.assign(asset, req.body);
     asset.updatedAt = new Date();
+
+    if (srHasChanged) {
+      asset.serviceRequests.push({
+        serviceType: asset.serviceType,
+        serviceStatus: asset.serviceStatus,
+        damageReason: asset.damageReason,
+        damagedItem: asset.damagedItem,
+        serviceResolution: asset.serviceResolution,
+        serviceCost: asset.serviceCost,
+        createdAt: new Date()
+      });
+    }
 
     if (req.body.assetTag && req.body.assetTag !== oldData.assetTag) {
       try {
@@ -351,7 +372,15 @@ router.post('/import/csv', authenticateToken, authorizeRole('admin', 'manager'),
       assetData.type = (getValue(['Type', 'type', 'Asset Type']) || 'hardware').toLowerCase();
       assetData.serialNumber = getValue(['Serial Number', 'serialNumber', 'sn', 'S/N']);
       assetData.status = (getValue(['Status', 'status']) || 'available').toLowerCase();
-      assetData.purchasePrice = parseFloat(getValue(['Purchase Price', 'purchasePrice', 'Price']) || 0);
+      const rawPrice = getValue(['Purchase Price', 'purchasePrice', 'Price']);
+      let parsedPrice = 0;
+      if (typeof rawPrice === 'string') {
+        const cleaned = rawPrice.replace(/[^\d.-]/g, '');
+        parsedPrice = parseFloat(cleaned);
+      } else if (typeof rawPrice === 'number') {
+        parsedPrice = rawPrice;
+      }
+      assetData.purchasePrice = isNaN(parsedPrice) ? 0 : parsedPrice;
       // Helper to parse date strings (e.g. 13-07-2021 to Date object)
       const parseDate = (dateStr) => {
         if (!dateStr) return undefined;

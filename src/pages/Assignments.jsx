@@ -194,9 +194,8 @@ const Assignments = () => {
               .filter(a => {
                 if (!searchQuery) return true;
                 const searchLower = searchQuery.toLowerCase();
-                const firstName = a.employee?.firstName?.toLowerCase() || '';
-                const lastName = a.employee?.lastName?.toLowerCase() || '';
-                return firstName.includes(searchLower) || lastName.includes(searchLower);
+                const fullName = `${a.employee?.firstName || ''} ${a.employee?.lastName || ''}`.toLowerCase();
+                return fullName.includes(searchLower);
               })
               .map(assignment => (
               <tr key={assignment._id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">

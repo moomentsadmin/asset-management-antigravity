@@ -137,18 +137,18 @@ function App() {
               />
               <main className="flex-1 overflow-y-auto">
                 <Routes>
-                  <Route path="/dashboard" element={<ProtectedRoute><Dashboard settings={settings} /></ProtectedRoute>} />
+                  <Route path="/dashboard" element={<ProtectedRoute roles={['admin', 'manager']}><Dashboard settings={settings} /></ProtectedRoute>} />
                   <Route path="/assets" element={<ProtectedRoute><Assets /></ProtectedRoute>} />
                   <Route path="/assets/:id" element={<ProtectedRoute><AssetDetail /></ProtectedRoute>} />
                   <Route path="/employees" element={<ProtectedRoute><Employees /></ProtectedRoute>} />
                   <Route path="/asset-types" element={<ProtectedRoute roles={['admin', 'manager']}><AssetTypes /></ProtectedRoute>} />
                   <Route path="/locations" element={<ProtectedRoute roles={['admin', 'manager']}><Locations /></ProtectedRoute>} />
-                  <Route path="/assignments" element={<ProtectedRoute><Assignments /></ProtectedRoute>} />
+                  <Route path="/assignments" element={<ProtectedRoute roles={['admin', 'manager']}><Assignments /></ProtectedRoute>} />
                   <Route path="/users" element={<ProtectedRoute roles={['admin']}><Users /></ProtectedRoute>} />
                   <Route path="/settings" element={<ProtectedRoute roles={['admin']}><Settings settings={settings} onSettingsUpdate={setSettings} /></ProtectedRoute>} />
                   <Route path="/audit" element={<ProtectedRoute roles={['admin', 'manager']}><AuditTrail /></ProtectedRoute>} />
-                  <Route path="/" element={<Navigate to="/dashboard" />} />
-                  <Route path="*" element={<Navigate to="/dashboard" />} />
+                  <Route path="/" element={<Navigate to={user?.role === 'employee' ? '/assets' : '/dashboard'} />} />
+                  <Route path="*" element={<Navigate to={user?.role === 'employee' ? '/assets' : '/dashboard'} />} />
                 </Routes>
               </main>
             </div>

@@ -3,9 +3,10 @@ import mongoose from 'mongoose';
 const employeeSchema = new mongoose.Schema({
   employeeId: {
     type: String,
-    required: true,
+    sparse: true,
     unique: true,
-    index: true
+    index: true,
+    default: null
   },
   firstName: {
     type: String,

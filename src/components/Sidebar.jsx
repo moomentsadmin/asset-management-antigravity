@@ -67,12 +67,12 @@ const Sidebar = ({ user, onLogout, darkMode, settings }) => {
   const location = useLocation();
 
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: Icons.Dashboard, href: '/dashboard', roles: ['admin', 'manager', 'employee'] },
+    { id: 'dashboard', label: 'Dashboard', icon: Icons.Dashboard, href: '/dashboard', roles: ['admin', 'manager'] },
     { id: 'assets', label: 'Assets', icon: Icons.Assets, href: '/assets', roles: ['admin', 'manager', 'employee'] },
     { id: 'service-requests', label: 'Service Requests', icon: Icons.ServiceRequest, href: '/assets?status=in_maintenance', roles: ['admin', 'manager', 'employee'] },
     { id: 'employees', label: 'Employees', icon: Icons.Employees, href: '/employees', roles: ['admin', 'manager'] },
     { id: 'locations', label: 'Locations', icon: Icons.Locations, href: '/locations', roles: ['admin', 'manager'] },
-    { id: 'assignments', label: 'Assignments', icon: Icons.Assignments, href: '/assignments', roles: ['admin', 'manager', 'employee'] },
+    { id: 'assignments', label: 'Assignments', icon: Icons.Assignments, href: '/assignments', roles: ['admin', 'manager'] },
     { id: 'users', label: 'Users', icon: Icons.Users, href: '/users', roles: ['admin'] },
     { id: 'audit', label: 'Audit Trail', icon: Icons.Audit, href: '/audit', roles: ['admin', 'manager'] },
     { id: 'settings', label: 'Settings', icon: Icons.Settings, href: '/settings', roles: ['admin'] },

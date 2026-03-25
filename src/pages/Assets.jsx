@@ -20,6 +20,7 @@ const Assets = () => {
   });
   const [showForm, setShowForm] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
   const [formData, setFormData] = useState({
     assetTag: '',
     name: '',
@@ -154,9 +155,39 @@ const Assets = () => {
       try {
         await axios.delete(`/api/assets/${id}`);
         setAssets(assets.filter(a => a._id !== id));
+        setSelectedIds(selectedIds.filter(selectedId => selectedId !== id));
       } catch (err) {
         console.error('Failed to delete asset:', err);
       }
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!window.confirm(`Are you sure you want to delete ${selectedIds.length} assets?`)) return;
+    try {
+      await Promise.all(selectedIds.map(id => axios.delete(`/api/assets/${id}`)));
+      setAssets(assets.filter(a => !selectedIds.includes(a._id)));
+      setSelectedIds([]);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to delete some assets');
+      fetchAssets();
+    }
+  };
+
+  const toggleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedIds(assets.map(asset => asset._id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const toggleSelect = (id) => {
+    if (selectedIds.includes(id)) {
+      setSelectedIds(selectedIds.filter(selectedId => selectedId !== id));
+    } else {
+      setSelectedIds([...selectedIds, id]);
     }
   };
 
@@ -262,6 +293,14 @@ const Assets = () => {
               </svg>
               Export CSV
             </button>
+            {selectedIds.length > 0 && (
+              <button
+                onClick={handleBulkDelete}
+                className="px-4 py-2 border border-red-300 dark:border-red-600 text-red-700 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors flex items-center gap-2"
+              >
+                Delete Selected ({selectedIds.length})
+              </button>
+            )}
             <button
               onClick={() => setIsImportModalOpen(true)}
               className="px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-2"
@@ -559,6 +598,14 @@ const Assets = () => {
           <table className="w-full">
             <thead className="bg-slate-50 dark:bg-slate-950">
               <tr className="border-b border-slate-200 dark:border-slate-800">
+                <th className="px-6 py-4 text-left whitespace-nowrap">
+                  <input 
+                    type="checkbox" 
+                    checked={assets.length > 0 && selectedIds.length === assets.length}
+                    onChange={toggleSelectAll}
+                    className="w-4 h-4 rounded border-slate-300 dark:border-slate-700"
+                  />
+                </th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Asset Tag</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Asset Model</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Type</th>
@@ -572,6 +619,14 @@ const Assets = () => {
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {assets.map(asset => (
                 <tr key={asset._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <input 
+                      type="checkbox" 
+                      checked={selectedIds.includes(asset._id)}
+                      onChange={() => toggleSelect(asset._id)}
+                      className="w-4 h-4 rounded border-slate-300 dark:border-slate-700"
+                    />
+                  </td>
                   <td className="px-6 py-4 text-slate-900 dark:text-white font-medium whitespace-nowrap">{asset.assetTag}</td>
                   <td className="px-6 py-4 text-slate-700 dark:text-slate-200 whitespace-nowrap">{asset.name}</td>
                   <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-sm capitalize whitespace-nowrap">{asset.type?.replace('_', ' ')}</td>
@@ -618,6 +673,9 @@ const Assets = () => {
               No assets found. Upload a CSV or create one manually.
             </div>
           )}
+        </div>
+        <div className="p-4 border-t border-slate-200 dark:border-slate-800 text-sm text-slate-500 dark:text-slate-400">
+          Showing {assets.length} asset{assets.length !== 1 ? 's' : ''}
         </div>
       </div>
 

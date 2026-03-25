@@ -31,6 +31,9 @@ const AssetDetail = () => {
       const response = await axios.get(`/api/assets/${id}`);
       setAsset(response.data);
       setFormData(response.data);
+      if (response.data.status === 'in_maintenance') {
+        setActiveTab('Service Request');
+      }
     } catch (err) {
       console.error('Failed to fetch asset:', err);
     } finally {
@@ -118,6 +121,17 @@ const AssetDetail = () => {
     } catch (err) {
       console.error('Failed to delete assignment:', err);
       alert('Failed to delete assignment');
+    }
+  };
+
+  const handleReturnAssignment = async (assignmentId) => {
+    try {
+      await axios.post(`/api/assignments/${assignmentId}/return`);
+      fetchAssignmentHistory();
+      fetchAssetDetail();
+    } catch (err) {
+      console.error('Failed to return asset:', err);
+      alert('Failed to return asset');
     }
   };
 
@@ -519,6 +533,28 @@ const AssetDetail = () => {
                         <DetailItem label="Damage Reason" value={asset.damageReason} />
                         <DetailItem label="Resolution" value={asset.serviceResolution} fullWidth />
                       </div>
+
+                      {/* Service Request History */}
+                      <div className="mt-12 pt-8 border-t border-slate-100 dark:border-slate-800">
+                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Service Request History</h4>
+                        <div className="space-y-4">
+                          {asset.serviceRequests?.length > 0 ? asset.serviceRequests.slice().reverse().map((req, idx) => (
+                            <div key={idx} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700">
+                              <div className="flex justify-between items-center pb-2 mb-4 border-b border-slate-200 dark:border-slate-700">
+                                <span className="text-xs font-bold text-slate-500">{new Date(req.createdAt).toLocaleString()}</span>
+                                <span className="text-xs font-black uppercase tracking-widest text-slate-700 dark:text-slate-300">{req.serviceStatus || 'Update'}</span>
+                              </div>
+                              <div className="grid grid-cols-2 gap-y-6 gap-x-4">
+                                <DetailItem label="Damaged Item" value={req.damagedItem} />
+                                <DetailItem label="Reason" value={req.damageReason} />
+                                <DetailItem label="Repair Type" value={req.serviceType} />
+                                <DetailItem label="Cost" value={req.serviceCost ? formatCurrency(req.serviceCost, asset.location?.currency) : '-'} />
+                                <DetailItem label="Resolution" value={req.serviceResolution} fullWidth />
+                              </div>
+                            </div>
+                          )) : <p className="text-sm text-slate-400 italic">No previous service requests recorded.</p>}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -619,7 +655,12 @@ const AssetDetail = () => {
                       </div>
                     </div>
                     {['admin', 'manager'].includes(user?.role) && (
-                      <button onClick={() => handleDeleteAssignment(assignment._id)} className="text-red-500 hover:text-red-700 p-2 text-xs font-bold uppercase tracking-widest self-start mt-1">Delete</button>
+                      <div className="flex flex-col gap-1 items-end mt-1">
+                        {assignment.status === 'active' && (
+                          <button onClick={() => handleReturnAssignment(assignment._id)} className="text-amber-500 hover:text-amber-700 p-2 text-xs font-bold uppercase tracking-widest text-right">Return</button>
+                        )}
+                        <button onClick={() => handleDeleteAssignment(assignment._id)} className="text-red-500 hover:text-red-700 p-2 text-xs font-bold uppercase tracking-widest text-right">Delete</button>
+                      </div>
                     )}
                   </div>
                 ))

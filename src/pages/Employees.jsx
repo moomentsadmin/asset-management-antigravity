@@ -12,6 +12,7 @@ const Employees = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
   const [formData, setFormData] = useState({
     employeeId: '',
     firstName: '',
@@ -129,9 +130,39 @@ const Employees = () => {
     try {
       await axios.delete(`/api/employees/${id}`);
       setEmployees(employees.filter(e => e._id !== id));
+      setSelectedIds(selectedIds.filter(selectedId => selectedId !== id));
     } catch (err) {
       console.error(err);
       alert('Failed to delete employee: ' + (err.response?.data?.message || err.message));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!window.confirm(`Are you sure you want to delete ${selectedIds.length} employees?`)) return;
+    try {
+      await Promise.all(selectedIds.map(id => axios.delete(`/api/employees/${id}`)));
+      setEmployees(employees.filter(e => !selectedIds.includes(e._id)));
+      setSelectedIds([]);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to delete some employees');
+      fetchEmployees();
+    }
+  };
+
+  const toggleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedIds(employees.map(emp => emp._id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const toggleSelect = (id) => {
+    if (selectedIds.includes(id)) {
+      setSelectedIds(selectedIds.filter(selectedId => selectedId !== id));
+    } else {
+      setSelectedIds([...selectedIds, id]);
     }
   };
 
@@ -194,6 +225,14 @@ const Employees = () => {
               </svg>
               Export CSV
             </button>
+            {selectedIds.length > 0 && (
+              <button
+                onClick={handleBulkDelete}
+                className="px-4 py-2 border border-red-300 dark:border-red-600 text-red-700 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors flex items-center gap-2"
+              >
+                Delete Selected ({selectedIds.length})
+              </button>
+            )}
             <button
               onClick={() => setIsImportModalOpen(true)}
               className="px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-2"
@@ -268,7 +307,6 @@ const Employees = () => {
               value={formData.employeeId}
               onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
               className="px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg dark:bg-slate-800 dark:text-white"
-              required
             />
             <input
               type="text"
@@ -410,6 +448,14 @@ const Employees = () => {
           <table className="w-full">
             <thead className="bg-slate-50 dark:bg-slate-950">
               <tr className="border-b border-slate-200 dark:border-slate-800">
+                <th className="px-6 py-4 text-left whitespace-nowrap">
+                  <input 
+                    type="checkbox" 
+                    checked={employees.length > 0 && selectedIds.length === employees.length}
+                    onChange={toggleSelectAll}
+                    className="w-4 h-4 rounded border-slate-300 dark:border-slate-700"
+                  />
+                </th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">EMP ID</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Name</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Email</th>
@@ -422,7 +468,15 @@ const Employees = () => {
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {employees.map(employee => (
                 <tr key={employee._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                  <td className="px-6 py-4 text-slate-900 dark:text-white font-medium whitespace-nowrap">{employee.employeeId}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <input 
+                      type="checkbox" 
+                      checked={selectedIds.includes(employee._id)}
+                      onChange={() => toggleSelect(employee._id)}
+                      className="w-4 h-4 rounded border-slate-300 dark:border-slate-700"
+                    />
+                  </td>
+                  <td className="px-6 py-4 text-slate-900 dark:text-white font-medium whitespace-nowrap">{employee.employeeId || '-'}</td>
                   <td className="px-6 py-4 text-slate-900 dark:text-white font-medium whitespace-nowrap">
                     {employee.firstName} {employee.lastName}
                   </td>
@@ -447,6 +501,9 @@ const Employees = () => {
               No employees found. Import CSV to get started.
             </div>
           )}
+        </div>
+        <div className="p-4 border-t border-slate-200 dark:border-slate-800 text-sm text-slate-500 dark:text-slate-400">
+          Showing {employees.length} employee{employees.length !== 1 ? 's' : ''}
         </div>
       </div>
 
