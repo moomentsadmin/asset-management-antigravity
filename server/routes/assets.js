@@ -135,27 +135,49 @@ router.put('/:id', authenticateToken, authorizeRole('admin', 'manager'), async (
     const oldData = asset.toObject();
 
     const srHasChanged = (
-      (req.body.serviceType !== undefined && req.body.serviceType !== asset.serviceType) ||
-      (req.body.serviceStatus !== undefined && req.body.serviceStatus !== asset.serviceStatus) ||
-      (req.body.damageReason !== undefined && req.body.damageReason !== asset.damageReason) ||
-      (req.body.damagedItem !== undefined && req.body.damagedItem !== asset.damagedItem) ||
-      (req.body.serviceResolution !== undefined && req.body.serviceResolution !== asset.serviceResolution) ||
-      (req.body.serviceCost !== undefined && Number(req.body.serviceCost) !== asset.serviceCost)
+      (req.body.serviceType !== undefined && req.body.serviceType !== oldData.serviceType) ||
+      (req.body.serviceStatus !== undefined && req.body.serviceStatus !== oldData.serviceStatus) ||
+      (req.body.damageReason !== undefined && req.body.damageReason !== oldData.damageReason) ||
+      (req.body.damagedItem !== undefined && req.body.damagedItem !== oldData.damagedItem) ||
+      (req.body.serviceResolution !== undefined && req.body.serviceResolution !== oldData.serviceResolution) ||
+      (req.body.serviceCost !== undefined && Number(req.body.serviceCost) !== oldData.serviceCost)
     );
 
     Object.assign(asset, req.body);
     asset.updatedAt = new Date();
 
+    if (req.body.status === 'in_maintenance' && oldData.status !== 'in_maintenance') {
+        asset.serviceType = '';
+        asset.serviceStatus = 'Pending';
+        asset.damageReason = '';
+        asset.damagedItem = '';
+        asset.serviceResolution = '';
+        asset.serviceCost = 0;
+    }
+
     if (srHasChanged) {
-      asset.serviceRequests.push({
-        serviceType: asset.serviceType,
-        serviceStatus: asset.serviceStatus,
-        damageReason: asset.damageReason,
-        damagedItem: asset.damagedItem,
-        serviceResolution: asset.serviceResolution,
-        serviceCost: asset.serviceCost,
-        createdAt: new Date()
-      });
+      const isOnlyStatusUpdate = (
+        req.body.serviceType === undefined &&
+        req.body.damageReason === undefined &&
+        req.body.damagedItem === undefined &&
+        req.body.serviceResolution === undefined &&
+        req.body.serviceCost === undefined &&
+        req.body.serviceStatus !== undefined
+      );
+
+      if (isOnlyStatusUpdate && asset.serviceRequests.length > 0) {
+        asset.serviceRequests[asset.serviceRequests.length - 1].serviceStatus = req.body.serviceStatus;
+      } else if (!isOnlyStatusUpdate) {
+        asset.serviceRequests.push({
+          serviceType: asset.serviceType,
+          serviceStatus: asset.serviceStatus,
+          damageReason: asset.damageReason,
+          damagedItem: asset.damagedItem,
+          serviceResolution: asset.serviceResolution,
+          serviceCost: asset.serviceCost,
+          createdAt: new Date()
+        });
+      }
     }
 
     if (req.body.assetTag && req.body.assetTag !== oldData.assetTag) {

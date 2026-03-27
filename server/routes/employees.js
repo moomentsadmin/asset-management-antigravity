@@ -209,8 +209,10 @@ router.post('/bulk-upload/csv', authenticateToken, authorizeRole('admin', 'manag
       }
 
       // Check if employee exists to update or skip
-      const existing = await Employee.findOne({ employeeId });
-      if (existing) continue; // In bulk upload, skip existing or handle differently if needed. We'll skip for now.
+      if (employeeId && String(employeeId).trim() !== '') {
+        const existing = await Employee.findOne({ employeeId: String(employeeId).trim() });
+        if (existing) continue; // In bulk upload, skip existing or handle differently if needed.
+      }
 
       const employeeObj = {
         firstName: firstName,

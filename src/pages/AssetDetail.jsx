@@ -69,7 +69,7 @@ const AssetDetail = () => {
   };
 
   const formatCurrency = (value, currency) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat(currency === 'INR' ? 'en-IN' : 'en-US', {
       style: 'currency',
       currency: currency || 'USD',
     }).format(value || 0);
